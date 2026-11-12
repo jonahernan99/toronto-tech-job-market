@@ -1,0 +1,38 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "toronto-tech-job-market"
+version = "0.1.0"
+description = "SQL analysis of tech job postings in Toronto and Canada from official Job Bank open data."
+readme = "README.md"
+requires-python = ">=3.10"
+authors = [{ name = "Jonathan Yesid Hernandez Bautista" }]
+license = "MIT"
+license-files = ["LICENSE"]
+keywords = ["data-analysis", "sql", "duckdb", "job-market", "open-data", "canada"]
+dependencies = ["duckdb>=1.1"]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0", "pytest-cov>=5.0", "ruff>=0.6"]
+
+[project.scripts]
+jobmarket = "jobmarket.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+jobmarket = ["sql/*.sql"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
