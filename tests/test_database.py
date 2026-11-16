@@ -109,3 +109,59 @@ def test_rejects_files_missing_required_columns(tmp_path):
 def test_requires_at_least_one_file():
     with pytest.raises(ValueError, match="No raw files"):
         build_database([])
+
+
+def build_one_month(tmp_path, rows):
+    return build_database([write_month(tmp_path / "2026-10.csv", rows)])
+
+
+def plausibility(con):
+    return dict(con.sql("select posting_id, salary_is_plausible from postings").fetchall())
+
+
+def test_salary_plausibility_catches_swapped_units(tmp_path):
+    con = build_one_month(
+        tmp_path,
+        [
+            row("ok"),  # 30 $/h
+            row("hourly-as-yearly", per="Year", low="25", high="25"),  # $25 a year
+            row("yearly-as-hourly", per="Hour", low="95000", high="95000"),
+            row("missing", per="NA", low="NA", high="NA"),
+        ],
+    )
+    assert plausibility(con) == {
+        "ok": True,
+        "hourly-as-yearly": False,
+        "yearly-as-hourly": False,
+        "missing": None,
+    }
+
+
+@pytest.mark.parametrize(
+    ("rate", "plausible"), [("11.99", False), ("12", True), ("250", True), ("250.5", False)]
+)
+def test_salary_plausibility_bounds(tmp_path, rate, plausible):
+    con = build_one_month(
+        tmp_path, [row("1", low=rate, high=rate, hours_per="NA", hours_low="NA", hours_high="NA")]
+    )
+    assert plausibility(con) == {"1": plausible}
+
+
+def test_implied_hourly_uses_posted_weekly_hours(tmp_path):
+    con = build_one_month(tmp_path, [row("1", per="Year", low="78000", high="78000")])  # 37.5 h
+    assert con.sql("select implied_hourly from postings").fetchall()[0][0] == pytest.approx(40.0)
+
+
+def test_same_ad_in_two_cities_shares_a_posting_key(tmp_path):
+    con = build_one_month(
+        tmp_path,
+        [
+            row("toronto", city="Toronto"),
+            row("mississauga", city="Mississauga"),
+            row("different-pay", city="Toronto", low="31", high="31"),
+        ],
+    )
+    keys = dict(con.sql("select posting_id, posting_key from postings").fetchall())
+    assert keys["toronto"] == keys["mississauga"]
+    assert keys["toronto"] != keys["different-pay"]
+    assert con.sql("select count(distinct posting_key) from postings").fetchall()[0][0] == 2

@@ -9,6 +9,19 @@
 --   Bi-weekly x 26
 --   Month     x 12
 -- A posting's salary is the midpoint of its minimum and maximum.
+--
+-- Salary plausibility: some postings enter an hourly rate as a yearly salary
+-- (742 "yearly" salaries under $1,000) or a yearly salary as an hourly rate
+-- (hourly rates up to $200,000). A salary is plausible when its implied hourly
+-- rate is between $12 (below every provincial minimum wage) and $250 (about
+-- $520,000 a year). Implausible salaries stay visible but are excluded from
+-- salary statistics.
+--
+-- posting_key: Job Bank lists one row per work location, so the same posting
+-- can appear once per city. Rows sharing title, occupation, first posting date,
+-- salary, employment terms and month get the same key. The data has no
+-- employer name, so different employers posting identical ads would also share
+-- a key: report both row counts and distinct keys.
 
 create or replace view postings as
 with typed as (
@@ -49,20 +62,38 @@ midpoints as (
                 then (hours_min + coalesce(hours_max, hours_min)) / 2
         end as weekly_hours
     from typed
+),
+
+annualized as (
+    select
+        m.*,
+        case m.salary_per
+            when 'Hour' then m.salary_mid * coalesce(m.weekly_hours, 40) * 52
+            when 'Day' then m.salary_mid * 260
+            when 'Week' then m.salary_mid * 52
+            when 'Bi-weekly' then m.salary_mid * 26
+            when 'Month' then m.salary_mid * 12
+            when 'Year' then m.salary_mid
+        end as annual_salary
+    from midpoints as m
 )
 
 select
-    m.* exclude (salary_mid, weekly_hours),
-    case m.salary_per
-        when 'Hour' then m.salary_mid * coalesce(m.weekly_hours, 40) * 52
-        when 'Day' then m.salary_mid * 260
-        when 'Week' then m.salary_mid * 52
-        when 'Bi-weekly' then m.salary_mid * 26
-        when 'Month' then m.salary_mid * 12
-        when 'Year' then m.salary_mid
-    end as annual_salary,
+    a.* exclude (salary_mid, weekly_hours),
+    a.annual_salary / (coalesce(a.weekly_hours, 40) * 52) as implied_hourly,
+    case
+        when a.annual_salary is not null
+            then a.annual_salary / (coalesce(a.weekly_hours, 40) * 52) between 12 and 250
+    end as salary_is_plausible,
+    md5(concat_ws('|',
+        lower(coalesce(a.job_title, '')), coalesce(a.noc_code, ''),
+        coalesce(cast(a.first_posting_date as varchar), ''), coalesce(a.salary_per, ''),
+        coalesce(cast(a.salary_min as varchar), ''), coalesce(cast(a.salary_max as varchar), ''),
+        coalesce(a.employment_type, ''), coalesce(a.employment_term, ''),
+        cast(a.source_month as varchar)
+    )) as posting_key,
     o.family as occupation_family,
     o.family is not null as is_tech,
-    coalesce(m.economic_region = 'Toronto Region', false) as is_toronto
-from midpoints as m
-left join occupations as o on o.noc_code = m.noc_code;
+    coalesce(a.economic_region = 'Toronto Region', false) as is_toronto
+from annualized as a
+left join occupations as o on o.noc_code = a.noc_code;

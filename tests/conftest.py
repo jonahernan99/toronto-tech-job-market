@@ -15,8 +15,20 @@ HEADER = [
 NEWER_HEADER = [*HEADER, "Official Language"]
 
 
-def row(posting_id, *, noc="21232", region="Toronto Region", per="Hour", low="30", high="30",
-        hours_per="Week", hours_low="37.5", hours_high="37.5", external="0"):  # fmt: skip
+def row(
+    posting_id,
+    *,
+    noc="21232",
+    region="Toronto Region",
+    per="Hour",
+    low="30",
+    high="30",
+    hours_per="Week",
+    hours_low="37.5",
+    hours_high="37.5",
+    external="0",
+    city="Toronto",
+):
     values = {
         "WIC Job Location Snapshot ID": posting_id,
         "Job Title": "software developer",
@@ -29,7 +41,7 @@ def row(posting_id, *, noc="21232", region="Toronto Region", per="Hour", low="30
         "Experience Level": "NA",
         "NAICS": "NA",
         "Province/Territory": "Ontario",
-        "City": "Toronto",
+        "City": city,
         "Economic Region": region,
         "Employment Type": "Full time",
         "Employment Term": "Permanent employment",
