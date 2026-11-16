@@ -90,6 +90,11 @@ def build_database(
         [(code, name, family) for code, (name, family) in TECH_OCCUPATIONS.items()],
     )
 
+    apply_staging(con)
+    return con
+
+
+def apply_staging(con: duckdb.DuckDBPyConnection) -> None:
+    """(Re)create the ``postings`` view, so databases built earlier pick up new columns."""
     staging = resources.files("jobmarket").joinpath("sql/staging.sql").read_text("utf-8")
     con.execute(staging)
-    return con

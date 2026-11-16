@@ -1,4 +1,4 @@
-"""Command-line interface: ``jobmarket download`` and ``jobmarket build``."""
+"""Command-line interface: ``jobmarket download``, ``build`` and ``report``."""
 
 from __future__ import annotations
 
@@ -7,8 +7,12 @@ import sys
 from collections.abc import Sequence
 from pathlib import Path
 
+import duckdb
+
 from jobmarket import sources
-from jobmarket.database import build_database
+from jobmarket.analysis import run_analysis
+from jobmarket.database import apply_staging, build_database
+from jobmarket.report import render_report
 
 EXIT_OK = 0
 EXIT_ERROR = 2
@@ -37,6 +41,10 @@ def build_parser() -> argparse.ArgumentParser:
     build = commands.add_parser("build", help="Load downloaded files into DuckDB")
     build.add_argument("--raw", type=Path, default=Path("data/raw"), help="Folder of YYYY-MM.csv")
     build.add_argument("--db", type=Path, default=Path("data/jobmarket.duckdb"), help="Database")
+
+    report = commands.add_parser("report", help="Run the SQL analysis and write a Markdown report")
+    report.add_argument("--db", type=Path, default=Path("data/jobmarket.duckdb"), help="Database")
+    report.add_argument("--out", type=Path, default=Path("reports/summary.md"), help="Report file")
     return parser
 
 
@@ -69,9 +77,25 @@ def _run_build(args: argparse.Namespace) -> int:
     return EXIT_OK
 
 
+def _run_report(args: argparse.Namespace) -> int:
+    if not args.db.exists():
+        print(f"error: {args.db} not found; run `jobmarket build` first", file=sys.stderr)
+        return EXIT_ERROR
+    con = duckdb.connect(str(args.db))
+    try:
+        apply_staging(con)
+        tables = run_analysis(con)
+    finally:
+        con.close()
+    args.out.parent.mkdir(parents=True, exist_ok=True)
+    args.out.write_text(render_report(tables), encoding="utf-8")
+    print(f"Wrote {len(tables)} tables to {args.out}")
+    return EXIT_OK
+
+
 def main(argv: Sequence[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
-    handlers = {"download": _run_download, "build": _run_build}
+    handlers = {"download": _run_download, "build": _run_build, "report": _run_report}
     try:
         return handlers[args.command](args)
     except (OSError, ValueError) as exc:
