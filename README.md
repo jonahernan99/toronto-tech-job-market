@@ -10,24 +10,58 @@ A reproducible SQL analysis of a year of postings from Canada's National Job
 Bank: which tech occupations are hiring, what they pay, and how demand changes
 month to month.
 
-> **Status: work in progress.** The data pipeline is done and tested. The
-> analysis, notebook and dashboard come next, so no conclusions are drawn yet.
+> **Status: work in progress.** The pipeline and the SQL analysis are done and
+> tested. A notebook with charts and a dashboard come next.
 
-## Data at a glance
+## First findings
 
-From the 12 monthly files for November 2025 to October 2026:
+From the 12 monthly files for November 2025 to October 2026 (601,330 rows,
+11,025 distinct tech postings, 5,074 of them in the Toronto Region). The full
+tables are in [`reports/summary.md`](reports/summary.md).
 
-| | |
-| --- | --- |
-| Rows loaded | 601,330 |
-| Tech rows in Canada | 13,893 |
-| Tech rows in the Toronto Region | 6,301 |
-| Tech rows in the Toronto Region per month | 366 to 716 |
+1. **Toronto holds about half of Canada's tech postings on Job Bank:** 51% of
+   software postings and 55% of data postings are in the Toronto Region.
+2. **Toronto pays more in every tech family.** Median annual salary, Toronto
+   vs. the rest of Canada:
 
-A row is one posting at one work location, so a job advertised in several
-cities appears once per city. Tech means one of
-[15 NOC 2021 occupations](src/jobmarket/occupations.py), from software
-developers and data scientists to user support technicians.
+   | Family | Toronto | Rest of Canada |
+   | --- | ---: | ---: |
+   | Software | $117,500 | $92,500 |
+   | Security | $104,300 | $100,700 |
+   | Data | $103,700 | $89,500 |
+   | IT & systems | $93,300 | $81,000 |
+   | Web | $83,100 | $72,800 |
+   | Networks & support | $74,900 | $69,200 |
+
+3. **The most advertised Toronto roles** are information systems specialists
+   (1,381 postings), software developers (909), software engineers (621) and
+   data scientists (421).
+4. **Toronto's share dropped in the second half of the period,** from about
+   50% between December and April to 38–43% between June and October. One
+   year of data cannot tell a seasonal pattern from a trend.
+5. **Most postings ask for a degree and some experience.** Of the Toronto tech
+   postings that state requirements, half ask for a bachelor's degree and
+   48% ask for 1 to 3 years of experience.
+
+These figures describe Job Bank, not the whole market (see
+[Limitations](#limitations)). Salary ranges for some occupations are narrow,
+which may reflect employers who must advertise on Job Bank, for example when
+applying to hire through federal programs.
+
+## How the numbers are counted
+
+- **Rows vs. distinct postings.** Job Bank lists one row per work location, so
+  14% of rows repeat an ad in another city. Analyses count distinct postings,
+  matched by title, occupation, date, salary and terms. The data has no
+  employer name, so identical ads from different employers would merge too.
+- **Plausible salaries only.** Some postings enter an hourly rate as a yearly
+  salary or the reverse. Salaries whose implied hourly rate falls outside $12
+  to $250 are excluded from salary statistics (0.4% of hourly and 1.3% of
+  yearly salaries).
+- **Medians, not averages,** with each posting counted once per region.
+
+Tech means one of [15 NOC 2021 occupations](src/jobmarket/occupations.py),
+from software developers and data scientists to user support technicians.
 
 ## Pipeline
 
@@ -45,6 +79,7 @@ open.canada.ca CKAN API ──> jobmarket download ──> data/raw/YYYY-MM.csv
 pip install -e .
 jobmarket download --last 12      # about 0.5 GB of CSV files
 jobmarket build                   # creates data/jobmarket.duckdb
+jobmarket report                  # runs the SQL analysis, writes reports/summary.md
 ```
 
 Then query it with any DuckDB client:
@@ -84,15 +119,24 @@ Real government data is messy. The pipeline deals with:
 - **No job descriptions.** The open data has titles and occupation codes but
   no description text, so skills cannot be extracted from it.
 - **Telework is not usable:** the field is either "No" or missing in every row.
-- **Salary outliers exist** (for example, hourly rates entered as yearly), and
-  will be handled explicitly in the analysis before any figure is reported.
+  The same goes for "Various Location", which is "No" everywhere.
+- **Category labels change over time:** education levels appear both as
+  "College/CEGEP" and as longer descriptions in different months, so they still
+  need to be merged.
+- **Requirements are partial:** education and experience are only reported by
+  direct employer postings, about a third of all rows.
+- **Salary outliers exist** (for example, hourly rates entered as yearly). They
+  are flagged with a documented rule and excluded from salary statistics, but a
+  wrong salary inside the $12 to $250 hourly range cannot be detected.
 
 ## Roadmap
 
 - [x] Download monthly files from the official API
 - [x] DuckDB pipeline with a cleaned, typed `postings` view
-- [ ] Salary outlier rules and posting de-duplication across locations
-- [ ] SQL analysis: demand by occupation, salaries, education and experience, trends
+- [x] Salary outlier rules and posting de-duplication across locations
+- [x] SQL analysis: demand by occupation, salaries, education and experience, trends
+- [x] `jobmarket report`: Markdown report generated from the SQL queries
+- [ ] Normalize education labels that changed over the year
 - [ ] Notebook with charts and written findings for a non-technical reader
 - [ ] Interactive dashboard
 
