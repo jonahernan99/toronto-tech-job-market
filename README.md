@@ -24,6 +24,8 @@ tables are in [`reports/summary.md`](reports/summary.md).
 2. **Toronto pays more in every tech family.** Median annual salary, Toronto
    vs. the rest of Canada:
 
+   ![Median salary by tech family, Toronto Region vs. rest of Canada](reports/figures/salary_by_family.png)
+
    | Family | Toronto | Rest of Canada |
    | --- | ---: | ---: |
    | Software | $117,500 | $92,500 |
@@ -39,6 +41,8 @@ tables are in [`reports/summary.md`](reports/summary.md).
 4. **Toronto's share dropped in the second half of the period,** from about
    50% between December and April to 38–43% between June and October. One
    year of data cannot tell a seasonal pattern from a trend.
+
+   ![Monthly tech postings, Toronto Region vs. Canada](reports/figures/monthly_trend.png)
 5. **Most postings ask for a degree and some experience.** Of the Toronto tech
    postings that state requirements, half ask for a bachelor's degree and
    48% ask for 1 to 3 years of experience.
@@ -76,10 +80,10 @@ open.canada.ca CKAN API ──> jobmarket download ──> data/raw/YYYY-MM.csv
 ```
 
 ```bash
-pip install -e .
+pip install -e ".[charts]"
 jobmarket download --last 12      # about 0.5 GB of CSV files
 jobmarket build                   # creates data/jobmarket.duckdb
-jobmarket report                  # runs the SQL analysis, writes reports/summary.md
+jobmarket report                  # SQL analysis + charts in reports/ (needs the charts extra)
 ```
 
 Then query it with any DuckDB client:
@@ -137,8 +141,9 @@ Real government data is messy. The pipeline deals with:
 - [x] Salary outlier rules and posting de-duplication across locations
 - [x] SQL analysis: demand by occupation, salaries, education and experience, trends
 - [x] `jobmarket report`: Markdown report generated from the SQL queries
-- [ ] Ordered education and experience levels with short labels
-- [ ] Notebook with charts and written findings for a non-technical reader
+- [x] Ordered education and experience levels with short labels
+- [x] Charts in the generated report (salaries, monthly trend, education)
+- [ ] Notebook with written findings for a non-technical reader
 - [ ] Interactive dashboard
 
 ## Development
