@@ -165,3 +165,34 @@ def test_same_ad_in_two_cities_shares_a_posting_key(tmp_path):
     assert keys["toronto"] == keys["mississauga"]
     assert keys["toronto"] != keys["different-pay"]
     assert con.sql("select count(distinct posting_key) from postings").fetchall()[0][0] == 2
+
+
+def test_education_and_experience_get_short_labels_and_ranks(tmp_path):
+    con = build_one_month(
+        tmp_path,
+        [
+            row("1", education="Bachelor's degree", experience="5 years or more"),
+            row("2", education="Secondary (high) school graduation certificate"),
+            row("3", education="Some future label", experience="No experience"),
+            row("4"),
+        ],
+    )
+    levels = {
+        r[0]: r[1:]
+        for r in con.sql(
+            "select posting_id, education_level, education_rank, experience_level, "
+            "experience_rank from postings"
+        ).fetchall()
+    }
+    assert levels["1"] == ("Bachelor's degree", 7, "5 years or more", 6)
+    assert levels["2"] == ("High school", 1, None, None)
+    assert levels["3"] == ("Some future label", 99, "None", 0)  # unknown labels sort last
+    assert levels["4"] == (None, None, None, None)
+
+
+def test_every_level_has_a_unique_rank():
+    from jobmarket.levels import EDUCATION_LEVELS, EXPERIENCE_LEVELS
+
+    for levels in (EDUCATION_LEVELS, EXPERIENCE_LEVELS):
+        ranks = [rank for _, rank in levels.values()]
+        assert len(ranks) == len(set(ranks))

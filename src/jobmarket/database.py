@@ -9,6 +9,7 @@ from pathlib import Path
 
 import duckdb
 
+from jobmarket.levels import EDUCATION_LEVELS, EXPERIENCE_LEVELS
 from jobmarket.occupations import TECH_OCCUPATIONS
 
 #: Raw columns the staging view needs, after collapsing repeated whitespace
@@ -81,6 +82,11 @@ def build_database(
     con.execute(f"create or replace table raw_postings as select {select_list} from raw_import")
     con.execute("drop table raw_import")
 
+    apply_staging(con)
+    return con
+
+
+def _load_reference_tables(con: duckdb.DuckDBPyConnection) -> None:
     con.execute(
         "create or replace table occupations "
         "(noc_code varchar primary key, noc_name varchar, family varchar)"
@@ -89,12 +95,25 @@ def build_database(
         "insert into occupations values (?, ?, ?)",
         [(code, name, family) for code, (name, family) in TECH_OCCUPATIONS.items()],
     )
-
-    apply_staging(con)
-    return con
+    for table, levels in (
+        ("education_levels", EDUCATION_LEVELS),
+        ("experience_levels", EXPERIENCE_LEVELS),
+    ):
+        con.execute(
+            f"create or replace table {table} "
+            "(label varchar primary key, short_label varchar, rank integer)"
+        )
+        con.executemany(
+            f"insert into {table} values (?, ?, ?)",
+            [(label, short, rank) for label, (short, rank) in levels.items()],
+        )
 
 
 def apply_staging(con: duckdb.DuckDBPyConnection) -> None:
-    """(Re)create the ``postings`` view, so databases built earlier pick up new columns."""
+    """(Re)create reference tables and the ``postings`` view.
+
+    Running it on a database built earlier gives it the current columns.
+    """
+    _load_reference_tables(con)
     staging = resources.files("jobmarket").joinpath("sql/staging.sql").read_text("utf-8")
     con.execute(staging)

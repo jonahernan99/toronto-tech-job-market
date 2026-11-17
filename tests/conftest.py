@@ -27,6 +27,8 @@ def row(
     hours_low="37.5",
     hours_high="37.5",
     external="0",
+    education="NA",
+    experience="NA",
     city="Toronto",
 ):
     values = {
@@ -37,8 +39,8 @@ def row(
         "External Indicator": external,
         "First Posting Date": "2026/10/02",
         "Vacancy Count": "1",
-        "Education LOS": "NA",
-        "Experience Level": "NA",
+        "Education LOS": education,
+        "Experience Level": experience,
         "NAICS": "NA",
         "Province/Territory": "Ontario",
         "City": city,

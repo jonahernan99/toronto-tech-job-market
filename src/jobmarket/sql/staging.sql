@@ -94,6 +94,14 @@ select
     )) as posting_key,
     o.family as occupation_family,
     o.family is not null as is_tech,
-    coalesce(a.economic_region = 'Toronto Region', false) as is_toronto
+    coalesce(a.economic_region = 'Toronto Region', false) as is_toronto,
+    case when a.education is not null then coalesce(ed.short_label, a.education) end
+        as education_level,
+    case when a.education is not null then coalesce(ed.rank, 99) end as education_rank,
+    case when a.experience is not null then coalesce(ex.short_label, a.experience) end
+        as experience_level,
+    case when a.experience is not null then coalesce(ex.rank, 99) end as experience_rank
 from annualized as a
-left join occupations as o on o.noc_code = a.noc_code;
+left join occupations as o on o.noc_code = a.noc_code
+left join education_levels as ed on ed.label = a.education
+left join experience_levels as ex on ex.label = a.experience;
