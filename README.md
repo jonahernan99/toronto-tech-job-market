@@ -120,9 +120,10 @@ Real government data is messy. The pipeline deals with:
   no description text, so skills cannot be extracted from it.
 - **Telework is not usable:** the field is either "No" or missing in every row.
   The same goes for "Various Location", which is "No" everywhere.
-- **Category labels change over time:** education levels appear both as
-  "College/CEGEP" and as longer descriptions in different months, so they still
-  need to be merged.
+- **Overlapping education labels:** "College/CEGEP" appears alongside longer
+  labels for college programs of 3 months to 1 year and of 1 to 2 years, in
+  every month. The source does not define how "College/CEGEP" differs from
+  them, so the three are kept apart.
 - **Requirements are partial:** education and experience are only reported by
   direct employer postings, about a third of all rows.
 - **Salary outliers exist** (for example, hourly rates entered as yearly). They
@@ -136,7 +137,7 @@ Real government data is messy. The pipeline deals with:
 - [x] Salary outlier rules and posting de-duplication across locations
 - [x] SQL analysis: demand by occupation, salaries, education and experience, trends
 - [x] `jobmarket report`: Markdown report generated from the SQL queries
-- [ ] Normalize education labels that changed over the year
+- [ ] Ordered education and experience levels with short labels
 - [ ] Notebook with charts and written findings for a non-technical reader
 - [ ] Interactive dashboard
 
