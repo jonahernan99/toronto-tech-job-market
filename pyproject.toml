@@ -15,7 +15,8 @@ keywords = ["data-analysis", "sql", "duckdb", "job-market", "open-data", "canada
 dependencies = ["duckdb>=1.1"]
 
 [project.optional-dependencies]
-dev = ["pytest>=8.0", "pytest-cov>=5.0", "ruff>=0.6"]
+charts = ["matplotlib>=3.7"]
+dev = ["pytest>=8.0", "pytest-cov>=5.0", "ruff>=0.6", "matplotlib>=3.7"]
 
 [project.scripts]
 jobmarket = "jobmarket.cli:main"

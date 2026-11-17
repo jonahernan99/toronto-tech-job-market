@@ -11,6 +11,7 @@ import duckdb
 
 from jobmarket import sources
 from jobmarket.analysis import run_analysis
+from jobmarket.charts import render_charts
 from jobmarket.database import apply_staging, build_database
 from jobmarket.report import render_report
 
@@ -45,6 +46,7 @@ def build_parser() -> argparse.ArgumentParser:
     report = commands.add_parser("report", help="Run the SQL analysis and write a Markdown report")
     report.add_argument("--db", type=Path, default=Path("data/jobmarket.duckdb"), help="Database")
     report.add_argument("--out", type=Path, default=Path("reports/summary.md"), help="Report file")
+    report.add_argument("--no-charts", action="store_true", help="Skip the PNG charts")
     return parser
 
 
@@ -88,8 +90,16 @@ def _run_report(args: argparse.Namespace) -> int:
     finally:
         con.close()
     args.out.parent.mkdir(parents=True, exist_ok=True)
-    args.out.write_text(render_report(tables), encoding="utf-8")
-    print(f"Wrote {len(tables)} tables to {args.out}")
+    figures: dict[str, str] = {}
+    if not args.no_charts:
+        try:
+            written = render_charts(tables, args.out.parent / "figures")
+        except ImportError:
+            print("warning: matplotlib is not installed, skipping charts", file=sys.stderr)
+        else:
+            figures = {name: f"figures/{path.name}" for name, path in written.items()}
+    args.out.write_text(render_report(tables, figures=figures), encoding="utf-8")
+    print(f"Wrote {len(tables)} tables and {len(figures)} charts to {args.out}")
     return EXIT_OK
 
 

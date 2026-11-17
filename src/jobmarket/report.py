@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from collections.abc import Sequence
+from collections.abc import Mapping, Sequence
 from datetime import date
 
 from jobmarket.analysis import Table
@@ -34,10 +34,12 @@ def _header(column: str) -> str:
     return column.replace("_pct", " %").replace("_", " ").capitalize()
 
 
-def render_table(table: Table) -> str:
+def render_table(table: Table, figure: str | None = None) -> str:
     lines = [f"## {table.title}", ""]
     if table.notes:
         lines += [f"_{table.notes}_", ""]
+    if figure is not None:
+        lines += [f"![{table.title}]({figure})", ""]
     if not table.rows:
         return "\n".join([*lines, "No rows."])
     lines.append("| " + " | ".join(_header(c) for c in table.columns) + " |")
@@ -55,8 +57,18 @@ def render_table(table: Table) -> str:
     return "\n".join(lines)
 
 
-def render_report(tables: Sequence[Table], *, generated: date | None = None) -> str:
-    """Render every table, with the data attribution the licence requires."""
+def render_report(
+    tables: Sequence[Table],
+    *,
+    generated: date | None = None,
+    figures: Mapping[str, str] | None = None,
+) -> str:
+    """Render every table, with the data attribution the licence requires.
+
+    ``figures`` maps a table name to an image path, relative to the report,
+    shown above that table.
+    """
+    figures = figures or {}
     generated = generated or date.today()
     parts = [
         "# Toronto Tech Job Market: SQL Analysis Report",
@@ -66,6 +78,6 @@ def render_report(tables: Sequence[Table], *, generated: date | None = None) -> 
         "",
     ]
     for table in tables:
-        parts += [render_table(table), ""]
+        parts += [render_table(table, figures.get(table.name)), ""]
     parts += ["---", "", ATTRIBUTION, ""]
     return "\n".join(parts)
