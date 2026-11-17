@@ -1,6 +1,6 @@
 # Toronto Tech Job Market: SQL Analysis Report
 
-Generated on 2026-11-16 by `jobmarket report` from the queries in [`src/jobmarket/sql/analysis`](../src/jobmarket/sql/analysis). Salaries are in CAD.
+Generated on 2026-11-17 by `jobmarket report` from the queries in [`src/jobmarket/sql/analysis`](../src/jobmarket/sql/analysis). Salaries are in CAD.
 
 ## Overview
 
@@ -26,6 +26,8 @@ _Distinct postings per occupation family. An ad listed in Toronto and in another
 ## Median annual salary by family, Toronto Region vs. rest of Canada (CAD)
 
 _Plausible salaries only, one row per posting and region so an ad repeated in many cities is not weighted several times. Rounded to the nearest $100._
+
+![Median annual salary by family, Toronto Region vs. rest of Canada (CAD)](figures/salary_by_family.png)
 
 | Family | Toronto postings | Toronto median | Rest postings | Rest of canada median |
 | --- | ---: | ---: | ---: | ---: |
@@ -57,6 +59,8 @@ _Distinct postings, with the salary range of those that state a plausible salary
 
 _Distinct postings per monthly file._
 
+![Monthly tech postings, Toronto Region vs. Canada](figures/monthly_trend.png)
+
 | Month | Toronto postings | Canada postings | Toronto share % |
 | --- | ---: | ---: | ---: |
 | 2025-11 | 412 | 918 | 44.9% |
@@ -74,33 +78,35 @@ _Distinct postings per monthly file._
 
 ## Education asked for in Toronto Region tech postings
 
-_Only direct employer postings report education, so external postings are left out of the percentages._
+_Only direct employer postings report education, so external postings are left out of the percentages. Levels are ordered from lowest to highest._
+
+![Education asked for in Toronto Region tech postings](figures/education.png)
 
 | Education | Postings | Pct |
 | --- | ---: | ---: |
+| No formal education | 6 | 0.7% |
+| High school | 46 | 5.5% |
+| Trades certificate | 6 | 0.7% |
+| College, under 1 year | 12 | 1.4% |
+| College, 1 to 2 years | 118 | 14.1% |
+| College/CEGEP, length not stated | 204 | 24.3% |
 | Bachelor's degree | 425 | 50.7% |
-| College/CEGEP | 204 | 24.3% |
-| College, CEGEP or other non-university certificate or diploma from a program of 1 year to 2 years | 118 | 14.1% |
-| Secondary (high) school graduation certificate | 46 | 5.5% |
 | Master's degree | 17 | 2.0% |
-| College, CEGEP or other non-university certificate or diploma from a program of 3 months to less than 1 year | 12 | 1.4% |
-| No degree, certificate or diploma | 6 | 0.7% |
-| Other trades certificate or diploma | 6 | 0.7% |
-| Earned doctorate degree | 5 | 0.6% |
+| Doctorate | 5 | 0.6% |
 
 ## Experience asked for in Toronto Region tech postings
 
-_Only direct employer postings report experience, so external postings are left out of the percentages._
+_Only direct employer postings report experience, so external postings are left out of the percentages. Levels are ordered from least to most._
 
 | Experience | Postings | Pct |
 | --- | ---: | ---: |
-| 1 year to less than 2 years | 211 | 25.1% |
-| 2 years to less than 3 years | 191 | 22.8% |
+| None | 62 | 7.4% |
+| Under 7 months | 32 | 3.8% |
+| 7 to 12 months | 61 | 7.3% |
+| 1 to 2 years | 211 | 25.1% |
+| 2 to 3 years | 191 | 22.8% |
+| 3 to 5 years | 138 | 16.4% |
 | 5 years or more | 144 | 17.2% |
-| 3 years to less than 5 years | 138 | 16.4% |
-| No experience | 62 | 7.4% |
-| 7 months to less than 1 year | 61 | 7.3% |
-| 1 to less than 7 months | 32 | 3.8% |
 
 ## Salary data quality by pay unit (all postings)
 
