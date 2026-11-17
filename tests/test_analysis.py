@@ -85,3 +85,34 @@ def test_all_queries_run_on_the_fixture(month_files):
     tables = run_analysis(build_database(month_files))
     assert len(tables) == 8
     assert all(table.columns for table in tables)
+
+
+def test_education_and_experience_tables_are_ordered_by_level(tmp_path):
+    rows = [
+        row("1", education="Bachelor's degree", experience="5 years or more"),
+        row(
+            "2",
+            education="Secondary (high) school graduation certificate",
+            low="31",
+            high="31",
+            experience="No experience",
+        ),
+        row(
+            "3",
+            education="Master's degree",
+            low="32",
+            high="32",
+            experience="2 years to less than 3 years",
+        ),
+    ]
+    tables = by_name(run_analysis(build_database([write_month(tmp_path / "2026-10.csv", rows)])))
+    assert [r[0] for r in tables["06_toronto_education"].rows] == [
+        "High school",
+        "Bachelor's degree",
+        "Master's degree",
+    ]
+    assert [r[0] for r in tables["07_toronto_experience"].rows] == [
+        "None",
+        "2 to 3 years",
+        "5 years or more",
+    ]
