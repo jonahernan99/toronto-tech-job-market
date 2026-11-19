@@ -88,8 +88,8 @@ def salary_by_family(table: Table, path: Path) -> Path:
     return _finish(
         fig,
         ax,
-        "Toronto pays more in every tech family",
-        "Median salary of distinct postings with a plausible salary",
+        "Advertised salaries are higher in Toronto",
+        "All postings, including external job boards' repeated ranges; median per posting",
         path,
     )
 
@@ -154,11 +154,56 @@ def education(table: Table, path: Path) -> Path:
     )
 
 
+def salary_by_experience(table: Table, path: Path) -> Path:
+    import matplotlib.pyplot as plt
+
+    rows = list(reversed(_rows(table)))  # least experience ends up on top
+    positions = range(len(rows))
+    fig, ax = plt.subplots(figsize=(8, 0.5 * len(rows) + 1.6), facecolor=SURFACE)
+    _style(ax, value_axis="x")
+    for y, r in zip(positions, rows, strict=True):
+        ax.plot(
+            [r["p25"] / 1000, r["p75"] / 1000],
+            [y, y],
+            color=TORONTO,
+            linewidth=6,
+            alpha=0.3,
+            solid_capstyle="round",
+        )
+        ax.plot(r["median"] / 1000, y, "o", color=TORONTO, markersize=8)
+        ax.annotate(
+            f"${r['median'] / 1000:.0f}k",
+            (r["p75"] / 1000, y),
+            xytext=(8, 0),
+            textcoords="offset points",
+            va="center",
+            color=INK_SECONDARY,
+            fontsize=8,
+        )
+    ax.set_yticks(list(positions), [r["experience"] for r in rows], color=INK)
+    ax.set_xlabel(
+        "Annual salary (CAD, thousands): dot = median, bar = middle half of postings",
+        color=MUTED,
+        fontsize=9,
+    )
+    ax.set_xlim(
+        min(r["p25"] for r in rows) / 1000 * 0.85, max(r["p75"] for r in rows) / 1000 * 1.12
+    )
+    return _finish(
+        fig,
+        ax,
+        "Pay rises with the experience asked for",
+        "Toronto Region tech postings published directly by employers",
+        path,
+    )
+
+
 #: Analysis table name -> (chart function, file name)
 CHARTS = {
     "03_salary_by_family": (salary_by_family, "salary_by_family.png"),
     "05_monthly_trend": (monthly_trend, "monthly_trend.png"),
     "06_toronto_education": (education, "education.png"),
+    "09_toronto_salary_by_experience": (salary_by_experience, "salary_by_experience.png"),
 }
 
 

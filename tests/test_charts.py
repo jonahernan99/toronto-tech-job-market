@@ -33,6 +33,16 @@ TABLES = [
         ("education", "postings", "pct"),
         [("High school", 5, 20.0), ("Bachelor's degree", 20, 80.0)],
     ),
+    Table(
+        "09_toronto_salary_by_experience",
+        "Experience",
+        "",
+        ("experience", "postings", "p25", "median", "p75"),
+        [
+            ("None", 62, 61300.0, 66800.0, 80000.0),
+            ("5 years or more", 143, 95000.0, 109200.0, 132300.0),
+        ],
+    ),
     Table("01_overview", "Overview", "", ("rows",), [(1,)]),  # no chart for this table
 ]
 
