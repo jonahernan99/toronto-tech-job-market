@@ -21,8 +21,9 @@ tables are in [`reports/summary.md`](reports/summary.md).
 
 1. **Toronto holds about half of Canada's tech postings on Job Bank:** 51% of
    software postings and 55% of data postings are in the Toronto Region.
-2. **Toronto pays more in every tech family.** Median annual salary, Toronto
-   vs. the rest of Canada:
+2. **Advertised salaries are higher in Toronto, but by less than the headline
+   numbers suggest.** Across all postings, the median is higher in every tech
+   family:
 
    ![Median salary by tech family, Toronto Region vs. rest of Canada](reports/figures/salary_by_family.png)
 
@@ -35,6 +36,14 @@ tables are in [`reports/summary.md`](reports/summary.md).
    | Web | $83,100 | $72,800 |
    | Networks & support | $74,900 | $69,200 |
 
+   Many of these salaries come from external job boards that reuse one wide
+   range per occupation (finding 6). Counting only postings that employers
+   publish on Job Bank themselves, Toronto still pays more in five of six
+   families, but the gaps shrink: software $95,000 vs. $90,000, data $90,000
+   vs. $80,000, and web pays *less* in Toronto ($65,500 vs. $68,300). The
+   direct postings are fewer (29 to 252 per family in Toronto), so these
+   figures are noisier.
+
 3. **The most advertised Toronto roles** are information systems specialists
    (1,381 postings), software developers (909), software engineers (621) and
    data scientists (421).
@@ -46,6 +55,18 @@ tables are in [`reports/summary.md`](reports/summary.md).
 5. **Most postings ask for a degree and some experience.** Of the Toronto tech
    postings that state requirements, half ask for a bachelor's degree and
    48% ask for 1 to 3 years of experience.
+6. **A quarter of salaries are templates, not offers.** 21 wide ranges, such
+   as $30.00 to $69.74 an hour for data scientists or $35.00 to $91.35 for
+   software engineers, each used for a single occupation, cover 27% of Toronto
+   tech postings with a salary. All of them come from external job boards and
+   repeat across months and job titles; none appears in a direct employer
+   posting. A range that wide says little about what one job pays, and its
+   midpoint is what enters the median.
+7. **Pay rises with the experience asked for.** In direct employer postings,
+   the median goes from about $61,000 to $71,000 for roles asking up to 2
+   years, to $93,600 for 3 to 5 years and $109,200 for 5 years or more.
+
+   ![Salary by experience asked for in Toronto Region tech postings](reports/figures/salary_by_experience.png)
 
 These figures describe Job Bank, not the whole market (see
 [Limitations](#limitations)). Salary ranges for some occupations are narrow,
@@ -63,6 +84,10 @@ applying to hire through federal programs.
   to $250 are excluded from salary statistics (0.4% of hourly and 1.3% of
   yearly salaries).
 - **Medians, not averages,** with each posting counted once per region.
+- **Direct vs. external postings.** 83% of Toronto tech postings come from
+  external job boards, which do not report education or experience and often
+  reuse occupation-wide salary ranges. Salaries are shown for all postings and
+  for direct employer postings alone, so the effect of those ranges is visible.
 
 Tech means one of [15 NOC 2021 occupations](src/jobmarket/occupations.py),
 from software developers and data scientists to user support technicians.
@@ -130,6 +155,10 @@ Real government data is messy. The pipeline deals with:
   them, so the three are kept apart.
 - **Requirements are partial:** education and experience are only reported by
   direct employer postings, about a third of all rows.
+- **Template salary ranges:** about a third of external tech postings in
+  Toronto reuse one wide range per occupation. They are kept, since they are
+  real advertised ranges, but measured in a separate table and compared with
+  direct postings. Why the boards use them cannot be determined from the data.
 - **Salary outliers exist** (for example, hourly rates entered as yearly). They
   are flagged with a documented rule and excluded from salary statistics, but a
   wrong salary inside the $12 to $250 hourly range cannot be detected.
@@ -143,6 +172,7 @@ Real government data is messy. The pipeline deals with:
 - [x] `jobmarket report`: Markdown report generated from the SQL queries
 - [x] Ordered education and experience levels with short labels
 - [x] Charts in the generated report (salaries, monthly trend, education)
+- [x] Check for repeated template salary ranges; salaries by experience and for direct postings
 - [ ] Notebook with written findings for a non-technical reader
 - [ ] Interactive dashboard
 
