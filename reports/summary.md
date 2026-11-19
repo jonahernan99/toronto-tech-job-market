@@ -1,6 +1,6 @@
 # Toronto Tech Job Market: SQL Analysis Report
 
-Generated on 2026-11-17 by `jobmarket report` from the queries in [`src/jobmarket/sql/analysis`](../src/jobmarket/sql/analysis). Salaries are in CAD.
+Generated on 2026-11-19 by `jobmarket report` from the queries in [`src/jobmarket/sql/analysis`](../src/jobmarket/sql/analysis). Salaries are in CAD.
 
 ## Overview
 
@@ -121,6 +121,45 @@ _Rows whose implied hourly rate falls outside $12 to $250 are flagged as implaus
 | Bi-weekly | 2,508 | 175 | 7.0% |
 | Week | 2,253 | 136 | 6.0% |
 | Day | 2,207 | 210 | 9.5% |
+
+## Salary by experience asked for, Toronto Region tech postings (CAD)
+
+_Only direct employer postings report experience, so this table covers them alone; their salaries are lower than those of external postings. Plausible salaries, one row per posting, percentiles rounded to the nearest $100._
+
+![Salary by experience asked for, Toronto Region tech postings (CAD)](figures/salary_by_experience.png)
+
+| Experience | Postings | P25 | Median | P75 |
+| --- | ---: | ---: | ---: | ---: |
+| None | 62 | 61,300 | 66,800 | 80,000 |
+| Under 7 months | 32 | 56,400 | 61,000 | 71,600 |
+| 7 to 12 months | 61 | 62,400 | 68,300 | 75,000 |
+| 1 to 2 years | 211 | 65,100 | 71,100 | 83,000 |
+| 2 to 3 years | 191 | 69,600 | 77,000 | 91,000 |
+| 3 to 5 years | 137 | 83,700 | 93,600 | 104,900 |
+| 5 years or more | 143 | 95,000 | 109,200 | 132,300 |
+
+## Repeated wide salary ranges in Toronto Region tech postings
+
+_A repeated wide range is a minimum and maximum that differ (for example $30.00 to $69.74 an hour) and appear in at least 20 distinct Toronto tech postings. In this data each one belongs to a single occupation, recurs across months and comes from external job boards, so they look like occupation-wide templates rather than individual offers. Round single values such as $50 an hour also repeat, but across many occupations, and are not counted here. Range midpoints drive the medians of external postings, which is why salaries are also shown for direct employer postings alone (next table)._
+
+| Source | Postings with salary | In repeated ranges | Repeated % |
+| --- | ---: | ---: | ---: |
+| Direct employer postings | 836 | 0 | 0.0% |
+| External job boards | 4,201 | 1,380 | 32.8% |
+| All | 5,037 | 1,380 | 27.4% |
+
+## Median annual salary by family, direct employer postings only (CAD)
+
+_The same comparison as the salary table above, restricted to postings that employers publish on Job Bank themselves, where repeated template ranges are rare. Samples are smaller, so read differences of a few thousand dollars with care. Plausible salaries, one row per posting and region, rounded to $100._
+
+| Family | Toronto postings | Toronto median | Rest postings | Rest of canada median |
+| --- | ---: | ---: | ---: | ---: |
+| Networks & support | 252 | 67,300 | 623 | 65,500 |
+| Software | 202 | 95,000 | 430 | 90,000 |
+| IT & systems | 166 | 88,100 | 339 | 82,500 |
+| Web | 95 | 65,500 | 279 | 68,300 |
+| Data | 93 | 90,000 | 167 | 80,000 |
+| Security | 29 | 100,400 | 64 | 97,300 |
 
 ---
 
