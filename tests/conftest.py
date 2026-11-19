@@ -30,10 +30,11 @@ def row(
     education="NA",
     experience="NA",
     city="Toronto",
+    title="software developer",
 ):
     values = {
         "WIC Job Location Snapshot ID": posting_id,
-        "Job Title": "software developer",
+        "Job Title": title,
         "NOC21 Code": noc,
         "NOC21 Code Name": "Some occupation",
         "External Indicator": external,

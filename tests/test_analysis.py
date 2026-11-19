@@ -32,7 +32,7 @@ def as_dicts(table):
 
 def test_every_query_has_a_title_and_notes():
     queries = load_queries()
-    assert [q.name[:2] for q in queries] == ["01", "02", "03", "04", "05", "06", "07", "08"]
+    assert [q.name[:2] for q in queries] == [f"{i:02d}" for i in range(1, 12)]
     for query in queries:
         assert query.title and query.title != query.name
         assert query.notes
@@ -83,7 +83,7 @@ def test_salary_quality_counts_implausible_rows(con):
 
 def test_all_queries_run_on_the_fixture(month_files):
     tables = run_analysis(build_database(month_files))
-    assert len(tables) == 8
+    assert len(tables) == 11
     assert all(table.columns for table in tables)
 
 
@@ -116,3 +116,62 @@ def test_education_and_experience_tables_are_ordered_by_level(tmp_path):
         "2 to 3 years",
         "5 years or more",
     ]
+
+
+def test_salary_by_experience_uses_direct_postings_in_level_order(tmp_path):
+    rows = [
+        row("1", experience="5 years or more", low="60", high="60"),
+        row("2", experience="No experience", low="30", high="30"),
+        row("3", experience="No experience", low="32", high="32", title="junior developer"),
+        # External postings do not report experience, so they are left out.
+        row("4", external="1", low="90", high="90"),
+    ]
+    tables = by_name(run_analysis(build_database([write_month(tmp_path / "2026-10.csv", rows)])))
+    experience = as_dicts(tables["09_toronto_salary_by_experience"])
+    assert [r["experience"] for r in experience] == ["None", "5 years or more"]
+    assert experience[0]["postings"] == 2
+    assert experience[0]["median"] == 60500  # 31 $/h x 37.5 h x 52 = 60,450, rounded to $100
+    assert experience[1]["median"] == 117000
+
+
+def test_repeated_wide_ranges_are_counted_by_source(tmp_path):
+    rows = []
+    # 20 external postings sharing one wide range: a repeated template.
+    rows += [
+        row(f"w{i}", noc="21211", low="30", high="69.74", external="1", title=f"data scientist {i}")
+        for i in range(20)
+    ]
+    # 19 postings sharing another wide range: below the threshold.
+    rows += [
+        row(f"n{i}", low="28", high="60", external="1", title=f"developer {i}") for i in range(19)
+    ]
+    # 20 postings at one round value: repeated, but not a wide range.
+    rows += [row(f"r{i}", low="50", high="50", title=f"engineer {i}") for i in range(20)]
+    tables = by_name(run_analysis(build_database([write_month(tmp_path / "2026-10.csv", rows)])))
+    repeated = {r["source"]: r for r in as_dicts(tables["10_repeated_salary_ranges"])}
+    assert repeated["External job boards"]["postings_with_salary"] == 39
+    assert repeated["External job boards"]["in_repeated_ranges"] == 20
+    assert repeated["Direct employer postings"]["in_repeated_ranges"] == 0
+    assert repeated["All"] == {
+        "source": "All",
+        "postings_with_salary": 59,
+        "in_repeated_ranges": 20,
+        "repeated_pct": 33.9,
+    }
+
+
+def test_direct_salary_by_family_leaves_out_external_postings(tmp_path):
+    rows = [
+        row("1"),  # direct, Toronto: 58,500
+        row("2", external="1", per="Year", low="150000", high="150000", title="lead developer"),
+        row("3", region="Ottawa Region", city="Ottawa", low="40", high="40", title="developer"),
+    ]
+    tables = by_name(run_analysis(build_database([write_month(tmp_path / "2026-10.csv", rows)])))
+    (software,) = as_dicts(tables["11_direct_salary_by_family"])
+    assert software == {
+        "family": "Software",
+        "toronto_postings": 1,
+        "toronto_median": 58500,
+        "rest_postings": 1,
+        "rest_of_canada_median": 78000,
+    }
