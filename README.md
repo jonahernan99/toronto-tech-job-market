@@ -10,8 +10,12 @@ A reproducible SQL analysis of a year of postings from Canada's National Job
 Bank: which tech occupations are hiring, what they pay, and how demand changes
 month to month.
 
-> **Status: work in progress.** The pipeline and the SQL analysis are done and
-> tested. A notebook with charts and a dashboard come next.
+> **Status: work in progress.** The pipeline, the SQL analysis and a
+> plain-language summary are done and tested. A dashboard comes next.
+>
+> **Not technical?** Start with
+> [`notebooks/findings.ipynb`](notebooks/findings.ipynb): five questions a job
+> seeker would ask, answered in plain words with charts.
 
 ## First findings
 
@@ -111,6 +115,14 @@ jobmarket build                   # creates data/jobmarket.duckdb
 jobmarket report                  # SQL analysis + charts in reports/ (needs the charts extra)
 ```
 
+The plain-language notebook reads the same database. Install the `notebook`
+extra and point it at the database if it is not in `data/`:
+
+```bash
+pip install -e ".[notebook]"
+JOBMARKET_DB=data/jobmarket.duckdb jupyter nbconvert --to notebook --execute --inplace notebooks/findings.ipynb
+```
+
 Then query it with any DuckDB client:
 
 ```sql
@@ -173,7 +185,7 @@ Real government data is messy. The pipeline deals with:
 - [x] Ordered education and experience levels with short labels
 - [x] Charts in the generated report (salaries, monthly trend, education)
 - [x] Check for repeated template salary ranges; salaries by experience and for direct postings
-- [ ] Notebook with written findings for a non-technical reader
+- [x] Notebook with written findings for a non-technical reader
 - [ ] Interactive dashboard
 
 ## Development
