@@ -540,21 +540,29 @@ function render() {
   renderOccupations(rows);
 }
 
-// Filters live in the URL (?period=6&family=Data&source=Direct+employer), so a
-// view can be shared as a link.
-function readFilters() {
-  const params = new URLSearchParams(window.location.search);
-  const controls = {
+// Filters are mirrored in the URL (?period=6&family=Data&source=Direct+employer),
+// so a view can be shared as a link. The URL is read once, when the page opens;
+// after that the controls are the only source of truth.
+function filterControls() {
+  return {
     period: document.getElementById("period"),
     family: document.getElementById("family"),
     source: document.getElementById("source"),
   };
-  for (const [name, control] of Object.entries(controls)) {
+}
+
+function applyUrlFilters() {
+  const params = new URLSearchParams(window.location.search);
+  for (const [name, control] of Object.entries(filterControls())) {
     const value = params.get(name);
     if (value !== null && [...control.options].some((option) => option.value === value)) {
       control.value = value;
     }
   }
+}
+
+function readFilters() {
+  const controls = filterControls();
   state.period = Number(controls.period.value);
   state.family = controls.family.value;
   state.source = controls.source.value;
@@ -577,6 +585,7 @@ function setUpFilters() {
     option.textContent = name;
     family.appendChild(option);
   }
+  applyUrlFilters();
   readFilters();
   document.getElementById("filters").addEventListener("change", () => {
     readFilters();

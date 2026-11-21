@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>Dashboard filter test</title></head>
+<body>
+<!-- Opens the dashboard, changes the filters one after another like a visitor
+     would, and writes what the page shows after each change into #result.
+     tests/test_dashboard_browser.py loads this page in headless Chrome. -->
+<iframe id="dashboard" src="../../dashboard/index.html?family=Data" style="width:1000px;height:800px"></iframe>
+<pre id="result">pending</pre>
+<script>
+const steps = [
+  {},
+  { family: "Security" },
+  { family: "Software" },
+  { period: "3" },
+  { period: "12" },
+  { source: "Direct employer" },
+  { source: "External job board" },
+  { period: "6", family: "IT & systems", source: "Direct employer" },
+  { family: "" },
+  { source: "" },
+  { period: "12" },
+];
+
+function snapshot(doc, win) {
+  const text = (id) => doc.getElementById(id).textContent;
+  return {
+    status: text("status"),
+    toronto: text("tile-toronto-count"),
+    rest: text("tile-rest-count"),
+    period: doc.getElementById("period").value,
+    family: doc.getElementById("family").value,
+    source: doc.getElementById("source").value,
+    search: win.location.search,
+  };
+}
+
+function run() {
+  const frame = document.getElementById("dashboard");
+  const win = frame.contentWindow;
+  const doc = win.document;
+  if (!doc.getElementById("status") || doc.getElementById("status").textContent.startsWith("Loading")) {
+    setTimeout(run, 100);
+    return;
+  }
+  const results = [];
+  for (const step of steps) {
+    for (const [name, value] of Object.entries(step)) {
+      const control = doc.getElementById(name);
+      control.value = value;
+      control.dispatchEvent(new win.Event("change", { bubbles: true }));
+    }
+    results.push({ step, ...snapshot(doc, win) });
+  }
+  document.getElementById("result").textContent = JSON.stringify(results);
+}
+
+window.addEventListener("load", () => setTimeout(run, 100));
+</script>
+</body>
+</html>
