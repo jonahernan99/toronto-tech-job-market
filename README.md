@@ -1,6 +1,7 @@
 # Toronto Tech Job Market
 
 [![CI](https://github.com/jonahernan99/toronto-tech-job-market/actions/workflows/ci.yml/badge.svg)](https://github.com/jonahernan99/toronto-tech-job-market/actions/workflows/ci.yml)
+[![Dashboard](https://img.shields.io/badge/dashboard-live-2a78d6)](https://jonahernan99.github.io/toronto-tech-job-market/)
 ![Python](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-blue)
 ![SQL](https://img.shields.io/badge/SQL-DuckDB-FFF000)
 ![License](https://img.shields.io/badge/license-MIT-green)
@@ -10,12 +11,36 @@ A reproducible SQL analysis of a year of postings from Canada's National Job
 Bank: which tech occupations are hiring, what they pay, and how demand changes
 month to month.
 
-> **Status: work in progress.** The pipeline, the SQL analysis and a
-> plain-language summary are done and tested. A dashboard comes next.
+> **Try it:** the [interactive dashboard](https://jonahernan99.github.io/toronto-tech-job-market/)
+> compares Toronto with the rest of Canada by occupation family, source and
+> period, in the browser.
 >
 > **Not technical?** Start with
 > [`notebooks/findings.ipynb`](notebooks/findings.ipynb): five questions a job
 > seeker would ask, answered in plain words with charts.
+
+## Interactive dashboard
+
+[![Dashboard: tiles with Toronto and rest-of-Canada postings and median salaries, a monthly trend chart and salaries by family](docs/dashboard.png)](https://jonahernan99.github.io/toronto-tech-job-market/)
+
+The [dashboard](https://jonahernan99.github.io/toronto-tech-job-market/) is a
+static page on GitHub Pages with no server. `jobmarket export` writes one row
+per tech posting and region (11,317 rows, no employer names) to
+[`dashboard/data/tech_postings.csv`](dashboard/data/tech_postings.csv), and the
+page computes every count and median from that file in the browser, with the
+same rules as the SQL report. Its numbers were checked against
+[`reports/summary.md`](reports/summary.md); for example, direct software
+postings give $95,000 in Toronto and $90,000 elsewhere in both.
+
+- Filter by period, occupation family and source (direct employer postings or
+  external job boards). Filters are kept in the URL, so a view can be shared as
+  a link, for example
+  [data jobs, direct postings only](https://jonahernan99.github.io/toronto-tech-job-market/?family=Data&source=Direct+employer).
+- Choosing a family breaks salaries down by occupation.
+- Every chart has hover and keyboard tooltips and a table view, and the page
+  follows the system's light or dark mode.
+- The extract is [documented](dashboard/data/README.md) and can be downloaded
+  for use in a spreadsheet or BI tool.
 
 ## First findings
 
@@ -113,6 +138,14 @@ pip install -e ".[charts]"
 jobmarket download --last 12      # about 0.5 GB of CSV files
 jobmarket build                   # creates data/jobmarket.duckdb
 jobmarket report                  # SQL analysis + charts in reports/ (needs the charts extra)
+jobmarket export                  # dashboard/data/tech_postings.csv for the dashboard
+```
+
+To preview the dashboard locally, serve the folder (browsers block `fetch` on
+`file://` pages) and open http://localhost:8000:
+
+```bash
+python -m http.server 8000 --directory dashboard
 ```
 
 The plain-language notebook reads the same database. Install the `notebook`
@@ -186,7 +219,7 @@ Real government data is messy. The pipeline deals with:
 - [x] Charts in the generated report (salaries, monthly trend, education)
 - [x] Check for repeated template salary ranges; salaries by experience and for direct postings
 - [x] Notebook with written findings for a non-technical reader
-- [ ] Interactive dashboard
+- [x] Interactive dashboard on GitHub Pages, fed by a documented CSV extract
 
 ## Development
 
@@ -208,4 +241,5 @@ Contains information licensed under the
 [Open Government Licence – Canada](https://open.canada.ca/en/open-government-licence-canada).
 
 The code in this repository is released under the [MIT License](LICENSE). Raw
-data files are not stored in the repository.
+data files are not stored in the repository; the dashboard extract in
+`dashboard/data/` is derived from them under the same licence.
