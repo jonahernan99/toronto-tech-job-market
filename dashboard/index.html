@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Toronto Tech Job Market</title>
+  <meta name="description" content="Interactive dashboard of a year of tech job postings on Canada's Job Bank: who is hiring in the Toronto Region and what they pay, compared with the rest of Canada.">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="wrap header">
+    <p class="eyebrow" id="period-label">Job Bank open data</p>
+    <h1>Toronto tech job market</h1>
+    <p class="lede">
+      Who is hiring in tech in the Toronto Region and what they pay, compared with the rest of
+      Canada, from a year of official Job Bank postings. Every chart and number below follows the
+      filters.
+    </p>
+  </header>
+
+  <main class="wrap">
+    <form class="filters" id="filters" aria-label="Filters">
+      <label>Period
+        <select id="period">
+          <option value="12">All 12 months</option>
+          <option value="6">Last 6 months</option>
+          <option value="3">Last 3 months</option>
+        </select>
+      </label>
+      <label>Occupation family
+        <select id="family"><option value="">All families</option></select>
+      </label>
+      <label>Source
+        <select id="source">
+          <option value="">All sources</option>
+          <option value="Direct employer">Direct employer postings</option>
+          <option value="External job board">External job boards</option>
+        </select>
+      </label>
+    </form>
+
+    <p class="status" id="status" role="status">Loading data…</p>
+
+    <section class="tiles" aria-label="Summary">
+      <div class="tile">
+        <p class="tile-label">Toronto Region postings</p>
+        <p class="tile-value" id="tile-toronto-count">–</p>
+        <p class="tile-sub" id="tile-toronto-count-sub"></p>
+      </div>
+      <div class="tile">
+        <p class="tile-label">Rest of Canada postings</p>
+        <p class="tile-value" id="tile-rest-count">–</p>
+        <p class="tile-sub" id="tile-rest-count-sub"></p>
+      </div>
+      <div class="tile">
+        <p class="tile-label">Toronto Region median salary</p>
+        <p class="tile-value" id="tile-toronto-salary">–</p>
+        <p class="tile-sub" id="tile-toronto-salary-sub"></p>
+      </div>
+      <div class="tile">
+        <p class="tile-label">Rest of Canada median salary</p>
+        <p class="tile-value" id="tile-rest-salary">–</p>
+        <p class="tile-sub" id="tile-rest-salary-sub"></p>
+      </div>
+    </section>
+
+    <p class="caution" id="template-note" hidden>
+      About a third of external job board salaries in Toronto are occupation-wide template ranges
+      rather than individual offers. Choose <strong>Direct employer postings</strong> to compare
+      salaries that employers set themselves.
+    </p>
+
+    <section class="card" aria-labelledby="trend-title">
+      <h2 id="trend-title">Postings per month</h2>
+      <p class="sub">Distinct postings; an ad listed in several cities of one region counts once.</p>
+      <ul class="legend" aria-hidden="true">
+        <li><span class="key line s1"></span>Toronto Region</li>
+        <li><span class="key line s2"></span>Rest of Canada</li>
+      </ul>
+      <div class="chart" id="trend"></div>
+      <details><summary>Show as a table</summary><div class="table-wrap" id="trend-table"></div></details>
+    </section>
+
+    <section class="card" aria-labelledby="salary-title">
+      <h2 id="salary-title">Median annual salary by family</h2>
+      <p class="sub" id="salary-sub">Plausible salaries in CAD, rounded to $100. Groups with fewer than 10 salaries are not shown.</p>
+      <ul class="legend" aria-hidden="true">
+        <li><span class="key box s1"></span>Toronto Region</li>
+        <li><span class="key box s2"></span>Rest of Canada</li>
+      </ul>
+      <div class="chart" id="salary"></div>
+      <details><summary>Show as a table</summary><div class="table-wrap" id="salary-table"></div></details>
+    </section>
+
+    <section class="card" aria-labelledby="experience-title">
+      <h2 id="experience-title">Median salary by experience asked for</h2>
+      <p class="sub">Direct employer postings only: external job boards do not report experience.</p>
+      <ul class="legend" aria-hidden="true">
+        <li><span class="key box s1"></span>Toronto Region</li>
+        <li><span class="key box s2"></span>Rest of Canada</li>
+      </ul>
+      <div class="chart" id="experience"></div>
+      <details><summary>Show as a table</summary><div class="table-wrap" id="experience-table"></div></details>
+    </section>
+
+    <section class="card" aria-labelledby="occupations-title">
+      <h2 id="occupations-title">Occupations in the Toronto Region</h2>
+      <p class="sub">Toronto postings by occupation, with the median salary in both regions.</p>
+      <div class="table-wrap" id="occupations"></div>
+    </section>
+
+    <section class="notes" aria-labelledby="notes-title">
+      <h2 id="notes-title">About the data</h2>
+      <ul>
+        <li>Source: the monthly Job Bank files published by Employment and Social Development
+          Canada. Job Bank under-represents tech hiring compared with sites such as LinkedIn, so
+          read the numbers as one official sample, not the whole market.</li>
+        <li>Tech means fifteen NOC 2021 occupations grouped into six families. The Toronto Region
+          is Job Bank's economic region, which includes Mississauga, Brampton and the rest of the
+          GTA.</li>
+        <li>Salaries are converted to an annual figure, and the midpoint of a range is used.
+          Salaries with an implied hourly rate below $12 or above $250 are left out.</li>
+        <li>The SQL behind every rule, a written report and the code that produced this extract
+          are in the <a href="https://github.com/jonahernan99/toronto-tech-job-market">GitHub
+          repository</a>. <a href="data/tech_postings.csv" download>Download the data (CSV)</a>.</li>
+      </ul>
+      <p class="licence">Contains information licensed under the
+        <a href="https://open.canada.ca/en/open-government-licence-canada">Open Government
+        Licence – Canada</a>.</p>
+    </section>
+  </main>
+
+  <div class="tooltip" id="tooltip" role="tooltip" hidden></div>
+  <script src="app.js" defer></script>
+</body>
+</html>
