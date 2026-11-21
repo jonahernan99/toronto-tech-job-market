@@ -1,4 +1,4 @@
-"""Command-line interface: ``jobmarket download``, ``build`` and ``report``."""
+"""Command-line interface: ``jobmarket download``, ``build``, ``report`` and ``export``."""
 
 from __future__ import annotations
 
@@ -13,6 +13,7 @@ from jobmarket import sources
 from jobmarket.analysis import run_analysis
 from jobmarket.charts import render_charts
 from jobmarket.database import apply_staging, build_database
+from jobmarket.export import export_postings
 from jobmarket.report import render_report
 
 EXIT_OK = 0
@@ -47,6 +48,12 @@ def build_parser() -> argparse.ArgumentParser:
     report.add_argument("--db", type=Path, default=Path("data/jobmarket.duckdb"), help="Database")
     report.add_argument("--out", type=Path, default=Path("reports/summary.md"), help="Report file")
     report.add_argument("--no-charts", action="store_true", help="Skip the PNG charts")
+
+    export = commands.add_parser("export", help="Write one CSV row per tech posting")
+    export.add_argument("--db", type=Path, default=Path("data/jobmarket.duckdb"), help="Database")
+    export.add_argument(
+        "--out", type=Path, default=Path("dashboard/data/tech_postings.csv"), help="CSV file"
+    )
     return parser
 
 
@@ -103,9 +110,28 @@ def _run_report(args: argparse.Namespace) -> int:
     return EXIT_OK
 
 
+def _run_export(args: argparse.Namespace) -> int:
+    if not args.db.exists():
+        print(f"error: {args.db} not found; run `jobmarket build` first", file=sys.stderr)
+        return EXIT_ERROR
+    con = duckdb.connect(str(args.db))
+    try:
+        apply_staging(con)
+        rows = export_postings(con, args.out)
+    finally:
+        con.close()
+    print(f"Wrote {rows:,} tech postings to {args.out}")
+    return EXIT_OK
+
+
 def main(argv: Sequence[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
-    handlers = {"download": _run_download, "build": _run_build, "report": _run_report}
+    handlers = {
+        "download": _run_download,
+        "build": _run_build,
+        "report": _run_report,
+        "export": _run_export,
+    }
     try:
         return handlers[args.command](args)
     except (OSError, ValueError) as exc:
