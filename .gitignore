@@ -23,7 +23,7 @@ htmlcov/
 Thumbs.db
 
 # Downloaded data and generated databases: rebuild them with the CLI
-data/
+/data/
 *.duckdb
 *.duckdb.wal
 *.parquet
