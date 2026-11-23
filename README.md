@@ -12,8 +12,8 @@ Bank: which tech occupations are hiring, what they pay, and how demand changes
 month to month.
 
 > **Try it:** the [interactive dashboard](https://jonahernan99.github.io/toronto-tech-job-market/)
-> compares Toronto with the rest of Canada by occupation family, source and
-> period, in the browser.
+> compares Toronto with the rest of Canada or with another tech hub, such as
+> Vancouver, Montréal or Ottawa, by occupation family, source and period.
 >
 > **Not technical?** Start with
 > [`notebooks/findings.ipynb`](notebooks/findings.ipynb): five questions a job
@@ -25,7 +25,8 @@ month to month.
 
 The [dashboard](https://jonahernan99.github.io/toronto-tech-job-market/) is a
 static page on GitHub Pages with no server. `jobmarket export` writes one row
-per tech posting and region (11,317 rows, no employer names) to
+per tech posting and economic region (11,756 rows for 11,025 postings, no
+employer names) to
 [`dashboard/data/tech_postings.csv`](dashboard/data/tech_postings.csv), and the
 page computes every count and median from that file in the browser, with the
 same rules as the SQL report. Its numbers were checked against
@@ -36,6 +37,10 @@ postings give $95,000 in Toronto and $90,000 elsewhere in both.
   external job boards). Filters are kept in the URL, so a view can be shared as
   a link, for example
   [data jobs, direct postings only](https://jonahernan99.github.io/toronto-tech-job-market/?family=Data&source=Direct+employer).
+- Compare Toronto with the rest of Canada or with one of the seven next largest
+  tech regions, for example
+  [Vancouver, direct postings only](https://jonahernan99.github.io/toronto-tech-job-market/?source=Direct+employer&compare=Lower+Mainland%E2%80%93Southwest+Region).
+  For the rest of Canada, an ad listed in several regions counts once.
 - Choosing a family breaks salaries down by occupation.
 - Every chart has hover and keyboard tooltips and a table view, and the page
   follows the system's light or dark mode.
