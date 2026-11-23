@@ -1,9 +1,11 @@
 """Export one row per tech posting, for the dashboard and for use in other tools.
 
-The export follows the counting rules of the analysis queries: one row per
-posting and region (an ad repeated in Toronto and Mississauga counts once for
-the Toronto Region), and a salary only when it is plausible. It holds no
-employer names or free-text job titles, only the fields the dashboard needs.
+There is one row per posting and economic region: an ad repeated in Toronto
+and Mississauga is one Toronto Region row, and an ad listed in Ottawa and
+Calgary is one row for each. ``posting`` identifies the ad, so counts for a
+group of regions (such as the rest of Canada) must count distinct postings.
+Salaries appear only when plausible. The extract holds no employer names or
+free-text job titles, only the fields the dashboard needs.
 """
 
 from __future__ import annotations
@@ -14,8 +16,10 @@ from pathlib import Path
 import duckdb
 
 COLUMNS: tuple[str, ...] = (
+    "posting",
     "month",
     "region",
+    "economic_region",
     "family",
     "noc_code",
     "occupation",
@@ -29,8 +33,10 @@ COLUMNS: tuple[str, ...] = (
 
 EXPORT_SQL = """
 select
+    dense_rank() over (order by posting_key) as posting,
     strftime(source_month, '%Y-%m') as month,
     case when is_toronto then 'Toronto Region' else 'Rest of Canada' end as region,
+    economic_region,
     occupation_family as family,
     noc_code,
     noc_name as occupation,
@@ -43,7 +49,7 @@ select
         as annual_salary
 from postings
 where is_tech
-qualify row_number() over (partition by posting_key, is_toronto order by posting_id) = 1
+qualify row_number() over (partition by posting_key, economic_region order by posting_id) = 1
 order by all
 """
 

@@ -61,9 +61,11 @@ def test_export_carries_labels_and_levels(month_file, tmp_path):
     export_postings(con, out)
 
     scientist = next(r for r in read(out) if r["noc_code"] == "21211")
+    assert scientist.pop("posting").isdigit()
     assert scientist == {
         "month": "2026-10",
         "region": "Toronto Region",
+        "economic_region": "Toronto Region",
         "family": "Data",
         "noc_code": "21211",
         "occupation": "Some occupation",
@@ -77,6 +79,19 @@ def test_export_carries_labels_and_levels(month_file, tmp_path):
     software = next(r for r in read(out) if r["region"] == "Rest of Canada")
     assert software["source"] == "Direct employer"
     assert software["experience"] == software["experience_rank"] == ""
+
+
+def test_an_ad_in_two_regions_shares_its_posting_id(month_file, tmp_path):
+    con = build_database([month_file])
+    out = tmp_path / "postings.csv"
+    export_postings(con, out)
+    rows = read(out)
+
+    # Rows 1 to 3 are one ad: Toronto and Mississauga merge, Ottawa stays apart.
+    software = [r for r in rows if r["noc_code"] == "21232" and r["annual_salary"] == "58500"]
+    assert sorted(r["economic_region"] for r in software) == ["Ottawa Region", "Toronto Region"]
+    assert len({r["posting"] for r in software}) == 1
+    assert len({r["posting"] for r in rows}) == 3
 
 
 def test_export_is_deterministic(month_file, tmp_path):
@@ -93,7 +108,7 @@ def test_export_command(month_file, tmp_path, capsys):
     assert main(["build", "--raw", str(month_file.parent), "--db", str(db)]) == EXIT_OK
     out = tmp_path / "dashboard" / "postings.csv"
     assert main(["export", "--db", str(db), "--out", str(out)]) == EXIT_OK
-    assert "Wrote 4 tech postings" in capsys.readouterr().out
+    assert "Wrote 4 rows, one per tech posting and economic region" in capsys.readouterr().out
     assert len(read(out)) == 4
 
 

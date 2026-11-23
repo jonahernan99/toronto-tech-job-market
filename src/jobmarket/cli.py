@@ -120,7 +120,7 @@ def _run_export(args: argparse.Namespace) -> int:
         rows = export_postings(con, args.out)
     finally:
         con.close()
-    print(f"Wrote {rows:,} tech postings to {args.out}")
+    print(f"Wrote {rows:,} rows, one per tech posting and economic region, to {args.out}")
     return EXIT_OK
 
 
