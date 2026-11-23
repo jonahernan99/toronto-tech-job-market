@@ -1,6 +1,6 @@
 # Toronto Tech Job Market: SQL Analysis Report
 
-Generated on 2026-11-19 by `jobmarket report` from the queries in [`src/jobmarket/sql/analysis`](../src/jobmarket/sql/analysis). Salaries are in CAD.
+Generated on 2026-11-23 by `jobmarket report` from the queries in [`src/jobmarket/sql/analysis`](../src/jobmarket/sql/analysis). Salaries are in CAD.
 
 ## Overview
 
@@ -160,6 +160,23 @@ _The same comparison as the salary table above, restricted to postings that empl
 | Web | 95 | 65,500 | 279 | 68,300 |
 | Data | 93 | 90,000 | 167 | 80,000 |
 | Security | 29 | 100,400 | 64 | 97,300 |
+
+## Toronto compared with Canada's other tech hubs (CAD)
+
+_The eight economic regions with the most distinct tech postings, chosen by that rule rather than by hand. A posting listed in two regions counts once in each. Salaries are shown for all postings and for direct employer postings alone, because external job boards' repeated template ranges raise the all-postings median. Direct samples outside Toronto are small, so read the counts. Plausible salaries, medians rounded to the nearest $100._
+
+![Toronto compared with Canada's other tech hubs (CAD)](figures/tech_hubs.png)
+
+| Region | Province | Postings | Direct % | Median all | Direct salaries | Median direct |
+| --- | --- | ---: | ---: | ---: | ---: | ---: |
+| Toronto Region | Ontario | 5,074 | 16.5% | 99,600 | 836 | 80,000 |
+| Lower Mainland–Southwest Region | British Columbia | 1,250 | 35.6% | 83,700 | 445 | 76,800 |
+| Montréal Region | Québec | 892 | 20.7% | 90,000 | 185 | 73,000 |
+| Calgary Region | Alberta | 413 | 37.5% | 77,500 | 155 | 74,500 |
+| Ottawa Region | Ontario | 284 | 27.5% | 88,400 | 78 | 84,200 |
+| Kitchener–Waterloo–Barrie Region | Ontario | 274 | 25.2% | 80,000 | 69 | 76,700 |
+| Halifax Region | Nova Scotia | 273 | 12.5% | 94,300 | 34 | 65,800 |
+| Edmonton Region | Alberta | 265 | 44.2% | 74,900 | 117 | 73,000 |
 
 ---
 
