@@ -198,12 +198,64 @@ def salary_by_experience(table: Table, path: Path) -> Path:
     )
 
 
+#: Display names for economic regions whose official name hides the city.
+REGION_LABELS = {"Lower Mainland–Southwest Region": "Vancouver (Lower Mainland)"}
+
+
+def region_label(region: str) -> str:
+    return REGION_LABELS.get(region, region.removesuffix(" Region"))
+
+
+def tech_hubs(table: Table, path: Path) -> Path:
+    import matplotlib.pyplot as plt
+
+    rows = list(reversed(_rows(table)))  # most postings ends up on top
+    positions = list(range(len(rows)))
+    fig, ax = plt.subplots(figsize=(8, 0.55 * len(rows) + 1.8), facecolor=SURFACE)
+    _style(ax, value_axis="x")
+    for y, r in zip(positions, rows, strict=True):
+        values = [v / 1000 for v in (r["median_direct"], r["median_all"]) if v is not None]
+        if len(values) == 2:
+            ax.plot(values, [y, y], color=AXIS, linewidth=2, zorder=1)
+        if r["median_all"] is not None:
+            ax.plot(r["median_all"] / 1000, y, "o", color=COMPARISON, markersize=8, zorder=2)
+        if r["median_direct"] is not None:
+            ax.plot(r["median_direct"] / 1000, y, "o", color=TORONTO, markersize=8, zorder=3)
+            left = min(values)
+            ax.annotate(
+                f"${r['median_direct'] / 1000:.0f}k direct ({r['direct_salaries']:,})",
+                (left, y),
+                xytext=(-8, 0),
+                textcoords="offset points",
+                ha="right",
+                va="center",
+                color=INK_SECONDARY,
+                fontsize=8,
+            )
+    labels = [f"{region_label(r['region'])}  ({r['postings']:,})" for r in rows]
+    ax.set_yticks(positions, labels, color=INK)
+    medians = [v for r in rows for v in (r["median_direct"], r["median_all"]) if v is not None]
+    ax.set_xlim(min(medians) / 1000 - 22, max(medians) / 1000 + 4)
+    ax.set_xlabel("Median annual salary (CAD, thousands)", color=MUTED, fontsize=9)
+    ax.plot([], [], "o", color=TORONTO, label="Direct employer postings")
+    ax.plot([], [], "o", color=COMPARISON, label="All postings")
+    ax.legend(loc="lower right", frameon=False, fontsize=9, labelcolor=INK_SECONDARY)
+    return _finish(
+        fig,
+        ax,
+        "Toronto leads in postings, not in direct pay",
+        "The eight regions with the most distinct tech postings (count in brackets)",
+        path,
+    )
+
+
 #: Analysis table name -> (chart function, file name)
 CHARTS = {
     "03_salary_by_family": (salary_by_family, "salary_by_family.png"),
     "05_monthly_trend": (monthly_trend, "monthly_trend.png"),
     "06_toronto_education": (education, "education.png"),
     "09_toronto_salary_by_experience": (salary_by_experience, "salary_by_experience.png"),
+    "12_tech_hubs": (tech_hubs, "tech_hubs.png"),
 }
 
 

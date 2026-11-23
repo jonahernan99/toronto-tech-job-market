@@ -43,6 +43,33 @@ TABLES = [
             ("5 years or more", 143, 95000.0, 109200.0, 132300.0),
         ],
     ),
+    Table(
+        "12_tech_hubs",
+        "Hubs",
+        "",
+        (
+            "region",
+            "province",
+            "postings",
+            "direct_pct",
+            "median_all",
+            "direct_salaries",
+            "median_direct",
+        ),
+        [
+            ("Toronto Region", "Ontario", 5074, 16.5, 99600.0, 836, 80000.0),
+            (
+                "Lower Mainland–Southwest Region",
+                "British Columbia",
+                1250,
+                35.6,
+                83700.0,
+                445,
+                76800.0,
+            ),
+            ("Halifax Region", "Nova Scotia", 273, 12.5, 94300.0, 0, None),
+        ],
+    ),
     Table("01_overview", "Overview", "", ("rows",), [(1,)]),  # no chart for this table
 ]
 
@@ -52,6 +79,13 @@ def test_every_charted_table_produces_a_png(tmp_path):
     assert set(written) == set(CHARTS)
     for path in written.values():
         assert path.read_bytes()[:8] == PNG_SIGNATURE
+
+
+def test_region_labels_name_the_city():
+    from jobmarket.charts import region_label
+
+    assert region_label("Lower Mainland–Southwest Region") == "Vancouver (Lower Mainland)"
+    assert region_label("Ottawa Region") == "Ottawa"
 
 
 def test_empty_tables_are_skipped(tmp_path):
@@ -72,8 +106,8 @@ def test_report_command_writes_charts(month_files, tmp_path, capsys):
     assert main(["build", "--raw", str(month_files[0].parent), "--db", str(db)]) == EXIT_OK
     out = tmp_path / "reports" / "summary.md"
     assert main(["report", "--db", str(db), "--out", str(out)]) == EXIT_OK
-    # The fixture has no education data, so only the salary and trend charts are drawn.
-    assert "and 2 charts" in capsys.readouterr().out
+    # The fixture has no education or experience data: salary, trend and hub charts are drawn.
+    assert "and 3 charts" in capsys.readouterr().out
     assert (tmp_path / "reports" / "figures" / "salary_by_family.png").exists()
     assert "![" in out.read_text(encoding="utf-8")
 
