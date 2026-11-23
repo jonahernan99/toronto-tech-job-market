@@ -6,11 +6,32 @@
 // and are rounded to the nearest $100.
 
 const DATA_URL = "data/tech_postings.csv";
-const REGIONS = ["Toronto Region", "Rest of Canada"];
+const TORONTO = "Toronto Region";
+const REST_OF_CANADA = "Rest of Canada";
+const HUBS = 7; // largest economic regions besides Toronto offered for comparison
 const MIN_SALARIES = 10;
 const SVG_NS = "http://www.w3.org/2000/svg";
+const REGION_LABELS = { "Lower Mainland–Southwest Region": "Vancouver (Lower Mainland)" };
 
-const state = { rows: [], months: [], families: [], period: 12, family: "", source: "" };
+const state = {
+  rows: [],
+  months: [],
+  families: [],
+  hubs: [],
+  period: 12,
+  family: "",
+  source: "",
+  compare: "",
+};
+
+function regionLabel(region) {
+  return REGION_LABELS[region] ?? region.replace(/ Region$/, "");
+}
+
+// Names of the two groups compared everywhere: Toronto and the chosen comparison.
+function names() {
+  return ["Toronto Region", state.compare ? regionLabel(state.compare) : REST_OF_CANADA];
+}
 
 // ---------------------------------------------------------------- data
 
@@ -58,8 +79,10 @@ function toRows(records) {
   return body
     .filter((values) => values.length === header.length)
     .map((values) => ({
+      posting: values[at.posting],
       month: values[at.month],
       region: values[at.region],
+      economicRegion: values[at.economic_region],
       family: values[at.family],
       occupation: values[at.occupation],
       source: values[at.source],
@@ -101,8 +124,28 @@ function groupBy(rows, key) {
   return groups;
 }
 
+// Rows have one entry per posting and economic region. Toronto is one region;
+// the rest of Canada can hold the same posting several times, so it keeps one
+// row per posting, as the SQL report does.
+function assignGroups(rows) {
+  const grouped = rows.filter((row) => row.region === TORONTO).map((row) => ({ ...row, group: 0 }));
+  if (state.compare) {
+    for (const row of rows) {
+      if (row.economicRegion === state.compare) grouped.push({ ...row, group: 1 });
+    }
+  } else {
+    const seen = new Set();
+    for (const row of rows) {
+      if (row.region === TORONTO || seen.has(row.posting)) continue;
+      seen.add(row.posting);
+      grouped.push({ ...row, group: 1 });
+    }
+  }
+  return grouped;
+}
+
 function byRegion(rows) {
-  return REGIONS.map((region) => rows.filter((row) => row.region === region));
+  return [0, 1].map((group) => rows.filter((row) => row.group === group));
 }
 
 // ---------------------------------------------------------------- formatting
@@ -225,12 +268,12 @@ function anchorOf(element) {
 function renderTrend(rows, months) {
   const container = document.getElementById("trend");
   const index = new Map(months.map((month, i) => [month, i]));
-  const counts = REGIONS.map(() => months.map(() => 0));
-  for (const row of rows) counts[REGIONS.indexOf(row.region)][index.get(row.month)]++;
+  const counts = [0, 1].map(() => months.map(() => 0));
+  for (const row of rows) counts[row.group][index.get(row.month)]++;
 
   htmlTable(
     document.getElementById("trend-table"),
-    ["Month", ...REGIONS],
+    ["Month", ...names()],
     months.map((month, i) => [
       monthLabel(month, "long"),
       integer.format(counts[0][i]),
@@ -257,7 +300,7 @@ function renderTrend(rows, months) {
     viewBox: `0 0 ${width} ${height}`,
     tabindex: 0,
     role: "img",
-    "aria-label": `Postings per month, ${REGIONS.join(" and ")}. Use the arrow keys to read each month.`,
+    "aria-label": `Postings per month, ${names().join(" and ")}. Use the arrow keys to read each month.`,
   });
   for (const value of ticks) {
     const cls = value === 0 ? "axis" : "grid";
@@ -293,7 +336,7 @@ function renderTrend(rows, months) {
       dot.setAttribute("cy", y(counts[s][i]));
       dot.setAttribute("visibility", "visible");
     });
-    const lines = REGIONS.map((region, s) => ({
+    const lines = names().map((region, s) => ({
       value: integer.format(counts[s][i]),
       label: region,
       key: `s${s + 1}`,
@@ -331,7 +374,7 @@ function renderTrend(rows, months) {
   container.replaceChildren(svg);
 }
 
-// Horizontal bars, one pair (Toronto Region, Rest of Canada) per group.
+// Horizontal bars, one pair (Toronto Region and the comparison) per group.
 // groups: [{ label, stats: [stats per region] }]
 function renderPairedBars(container, groups, unit) {
   if (!groups.length) return emptyMessage(container, "No postings match these filters.");
@@ -387,15 +430,15 @@ function renderPairedBars(container, groups, unit) {
       height: groupHeight - after / 2,
       tabindex: 0,
       role: "img",
-      "aria-label": `${group.label}: ${REGIONS.map((region, s) => `${region} ${describe(group.stats[s])}`).join("; ")}`,
+      "aria-label": `${group.label}: ${names().map((region, s) => `${region} ${describe(group.stats[s])}`).join("; ")}`,
     }, row);
     const lines = () =>
       group.stats.map((stats, s) => ({
         value: money(stats.median),
         label:
           stats.median === null
-            ? `${REGIONS[s]}, fewer than ${MIN_SALARIES} salaries`
-            : `${REGIONS[s]}, ${integer.format(stats.n)} ${unit}, middle half ${compactMoney(stats.p25)}–${compactMoney(stats.p75)}`,
+            ? `${names()[s]}, fewer than ${MIN_SALARIES} salaries`
+            : `${names()[s]}, ${integer.format(stats.n)} ${unit}, middle half ${compactMoney(stats.p25)}–${compactMoney(stats.p75)}`,
         key: `s${s + 1}`,
       }));
     const activate = (clientX, clientY) => {
@@ -417,7 +460,7 @@ function renderPairedBars(container, groups, unit) {
 function pairedTable(container, firstHeader, groups) {
   htmlTable(
     container,
-    [firstHeader, "Toronto median", "Toronto salaries", "Rest of Canada median", "Rest of Canada salaries"],
+    [firstHeader, "Toronto median", "Toronto salaries", `${names()[1]} median`, `${names()[1]} salaries`],
     groups.map((group) => [
       group.label,
       money(group.stats[0].median),
@@ -434,7 +477,7 @@ function renderSalary(rows) {
   const groups = [...groupBy(rows, key)]
     .map(([label, members]) => ({
       label,
-      count: members.filter((row) => row.region === REGIONS[0]).length,
+      count: members.filter((row) => row.group === 0).length,
       stats: byRegion(members).map(salaryStats),
     }))
     .sort((a, b) => b.count - a.count || a.label.localeCompare(b.label));
@@ -466,7 +509,7 @@ function renderExperience(rows) {
 }
 
 function renderOccupations(rows) {
-  const toronto = rows.filter((row) => row.region === REGIONS[0]);
+  const toronto = rows.filter((row) => row.group === 0);
   const groups = [...groupBy(rows, (row) => row.occupation)]
     .map(([occupation, members]) => {
       const [here, rest] = byRegion(members);
@@ -478,7 +521,7 @@ function renderOccupations(rows) {
   if (!groups.length) return emptyMessage(container, "No Toronto postings match these filters.");
   htmlTable(
     container,
-    ["Occupation", "Family", "Toronto postings", "Share", "Toronto median", "Rest of Canada median"],
+    ["Occupation", "Family", "Toronto postings", "Share", "Toronto median", `${names()[1]} median`],
     groups.map((group) => [
       group.occupation,
       group.family,
@@ -519,16 +562,21 @@ function selectedMonths() {
 function render() {
   const months = selectedMonths();
   const inPeriod = new Set(months);
-  const rows = state.rows.filter(
-    (row) =>
-      inPeriod.has(row.month) &&
-      (!state.family || row.family === state.family) &&
-      (!state.source || row.source === state.source),
+  const rows = assignGroups(
+    state.rows.filter(
+      (row) =>
+        inPeriod.has(row.month) &&
+        (!state.family || row.family === state.family) &&
+        (!state.source || row.source === state.source),
+    ),
   );
+  const [, other] = names();
   const range = `${monthLabel(months[0])} – ${monthLabel(months[months.length - 1])}`;
   document.getElementById("period-label").textContent = `Job Bank open data · ${range}`;
+  for (const element of document.querySelectorAll(".compare-name")) element.textContent = other;
   document.getElementById("status").textContent =
-    `${integer.format(rows.length)} tech postings, ${range}` +
+    `${integer.format(rows.length)} tech postings in the Toronto Region and ` +
+    `${state.compare ? other : "the rest of Canada"}, ${range}` +
     (state.family ? `, ${state.family}` : "") +
     (state.source ? `, ${state.source.toLowerCase()} postings` : "") +
     ".";
@@ -540,7 +588,7 @@ function render() {
   renderOccupations(rows);
 }
 
-// Filters are mirrored in the URL (?period=6&family=Data&source=Direct+employer),
+// Filters are mirrored in the URL (?period=6&family=Data&source=Direct+employer&compare=...),
 // so a view can be shared as a link. The URL is read once, when the page opens;
 // after that the controls are the only source of truth.
 function filterControls() {
@@ -548,6 +596,7 @@ function filterControls() {
     period: document.getElementById("period"),
     family: document.getElementById("family"),
     source: document.getElementById("source"),
+    compare: document.getElementById("compare"),
   };
 }
 
@@ -566,6 +615,7 @@ function readFilters() {
   state.period = Number(controls.period.value);
   state.family = controls.family.value;
   state.source = controls.source.value;
+  state.compare = controls.compare.value;
 }
 
 function writeFilters() {
@@ -573,6 +623,7 @@ function writeFilters() {
   if (state.period !== 12) params.set("period", state.period);
   if (state.family) params.set("family", state.family);
   if (state.source) params.set("source", state.source);
+  if (state.compare) params.set("compare", state.compare);
   const query = params.toString();
   window.history.replaceState(null, "", query ? `?${query}` : window.location.pathname);
 }
@@ -584,6 +635,13 @@ function setUpFilters() {
     option.value = name;
     option.textContent = name;
     family.appendChild(option);
+  }
+  const compare = document.getElementById("compare");
+  for (const region of state.hubs) {
+    const option = document.createElement("option");
+    option.value = region;
+    option.textContent = regionLabel(region);
+    compare.appendChild(option);
   }
   applyUrlFilters();
   readFilters();
@@ -609,6 +667,14 @@ async function main() {
   state.families = [...familyCounts.keys()].sort(
     (a, b) => familyCounts.get(b).length - familyCounts.get(a).length,
   );
+  // Rows are unique per posting and economic region, so rows count postings here.
+  const regionCounts = groupBy(
+    state.rows.filter((row) => row.economicRegion && row.economicRegion !== TORONTO),
+    (row) => row.economicRegion,
+  );
+  state.hubs = [...regionCounts.keys()]
+    .sort((a, b) => regionCounts.get(b).length - regionCounts.get(a).length || a.localeCompare(b))
+    .slice(0, HUBS);
   setUpFilters();
   render();
 

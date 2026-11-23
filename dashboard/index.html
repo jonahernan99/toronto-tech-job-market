@@ -13,8 +13,8 @@
     <h1>Toronto tech job market</h1>
     <p class="lede">
       Who is hiring in tech in the Toronto Region and what they pay, compared with the rest of
-      Canada, from a year of official Job Bank postings. Every chart and number below follows the
-      filters.
+      Canada or with another tech hub, from a year of official Job Bank postings. Every chart and
+      number below follows the filters.
     </p>
   </header>
 
@@ -37,6 +37,9 @@
           <option value="External job board">External job boards</option>
         </select>
       </label>
+      <label>Compare Toronto with
+        <select id="compare"><option value="">Rest of Canada</option></select>
+      </label>
     </form>
 
     <p class="status" id="status" role="status">Loading data…</p>
@@ -48,7 +51,7 @@
         <p class="tile-sub" id="tile-toronto-count-sub"></p>
       </div>
       <div class="tile">
-        <p class="tile-label">Rest of Canada postings</p>
+        <p class="tile-label"><span class="compare-name">Rest of Canada</span> postings</p>
         <p class="tile-value" id="tile-rest-count">–</p>
         <p class="tile-sub" id="tile-rest-count-sub"></p>
       </div>
@@ -58,7 +61,7 @@
         <p class="tile-sub" id="tile-toronto-salary-sub"></p>
       </div>
       <div class="tile">
-        <p class="tile-label">Rest of Canada median salary</p>
+        <p class="tile-label"><span class="compare-name">Rest of Canada</span> median salary</p>
         <p class="tile-value" id="tile-rest-salary">–</p>
         <p class="tile-sub" id="tile-rest-salary-sub"></p>
       </div>
@@ -72,10 +75,10 @@
 
     <section class="card" aria-labelledby="trend-title">
       <h2 id="trend-title">Postings per month</h2>
-      <p class="sub">Distinct postings; an ad listed in several cities of one region counts once.</p>
+      <p class="sub">Distinct postings; an ad listed in several cities of a region, or in several regions outside Toronto, counts once.</p>
       <ul class="legend" aria-hidden="true">
         <li><span class="key line s1"></span>Toronto Region</li>
-        <li><span class="key line s2"></span>Rest of Canada</li>
+        <li><span class="key line s2"></span><span class="compare-name">Rest of Canada</span></li>
       </ul>
       <div class="chart" id="trend"></div>
       <details><summary>Show as a table</summary><div class="table-wrap" id="trend-table"></div></details>
@@ -86,7 +89,7 @@
       <p class="sub" id="salary-sub">Plausible salaries in CAD, rounded to $100. Groups with fewer than 10 salaries are not shown.</p>
       <ul class="legend" aria-hidden="true">
         <li><span class="key box s1"></span>Toronto Region</li>
-        <li><span class="key box s2"></span>Rest of Canada</li>
+        <li><span class="key box s2"></span><span class="compare-name">Rest of Canada</span></li>
       </ul>
       <div class="chart" id="salary"></div>
       <details><summary>Show as a table</summary><div class="table-wrap" id="salary-table"></div></details>
@@ -97,7 +100,7 @@
       <p class="sub">Direct employer postings only: external job boards do not report experience.</p>
       <ul class="legend" aria-hidden="true">
         <li><span class="key box s1"></span>Toronto Region</li>
-        <li><span class="key box s2"></span>Rest of Canada</li>
+        <li><span class="key box s2"></span><span class="compare-name">Rest of Canada</span></li>
       </ul>
       <div class="chart" id="experience"></div>
       <details><summary>Show as a table</summary><div class="table-wrap" id="experience-table"></div></details>
@@ -105,7 +108,7 @@
 
     <section class="card" aria-labelledby="occupations-title">
       <h2 id="occupations-title">Occupations in the Toronto Region</h2>
-      <p class="sub">Toronto postings by occupation, with the median salary in both regions.</p>
+      <p class="sub">Toronto postings by occupation, with the median salary in Toronto and in the comparison.</p>
       <div class="table-wrap" id="occupations"></div>
     </section>
 

@@ -16,6 +16,7 @@ import re
 import shutil
 import subprocess
 import threading
+from collections import Counter
 from pathlib import Path
 
 import pytest
@@ -84,7 +85,8 @@ def rows():
         return list(csv.DictReader(handle))
 
 
-def expected_counts(rows, period, family, source):
+def expected_counts(rows, period, family, source, compare):
+    """Toronto postings and comparison postings, counted independently of the page's code."""
     months = sorted({row["month"] for row in rows})[-int(period) :]
     selected = [
         row
@@ -94,26 +96,43 @@ def expected_counts(rows, period, family, source):
         and (not source or row["source"] == source)
     ]
     toronto = sum(row["region"] == "Toronto Region" for row in selected)
-    return len(selected), toronto, len(selected) - toronto
+    if compare:
+        other = sum(row["economic_region"] == compare for row in selected)
+    else:
+        other = len({row["posting"] for row in selected if row["region"] == "Rest of Canada"})
+    return toronto + other, toronto, other
 
 
 def test_page_opens_with_the_filters_in_the_url(results):
     first = results[0]
-    assert (first["period"], first["family"], first["source"]) == ("12", "Data", "")
+    assert (first["period"], first["family"], first["source"], first["compare"]) == (
+        "12",
+        "Data",
+        "",
+        "",
+    )
+
+
+def test_comparison_offers_the_largest_other_regions(results, rows):
+    counts = Counter(
+        row["economic_region"]
+        for row in rows
+        if row["economic_region"] not in ("", "Toronto Region")
+    )
+    largest = [region for region, _ in counts.most_common(7)]
+    assert results[0]["hubs"] == ["", *largest]
 
 
 def test_every_filter_change_applies(results, rows):
-    previous = {"period": "12", "family": "Data", "source": ""}
+    previous = {"period": "12", "family": "Data", "source": "", "compare": ""}
     for result in results:
         wanted = {**previous, **result["step"]}
-        assert (result["period"], result["family"], result["source"]) == (
-            wanted["period"],
-            wanted["family"],
-            wanted["source"],
-        ), result["step"]
+        assert {key: result[key] for key in wanted} == wanted, result["step"]
         total, toronto, rest = expected_counts(rows, **wanted)
         assert result["status"].startswith(f"{total:,} tech postings"), result
         assert (result["toronto"], result["rest"]) == (f"{toronto:,}", f"{rest:,}"), result
+        name = wanted["compare"].removesuffix(" Region") if wanted["compare"] else "Rest of Canada"
+        assert result["compareName"] == name
         previous = wanted
 
 

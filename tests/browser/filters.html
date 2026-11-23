@@ -20,6 +20,10 @@ const steps = [
   { family: "" },
   { source: "" },
   { period: "12" },
+  { compare: "Ottawa Region" },
+  { family: "Software" },
+  { compare: "Montréal Region", source: "Direct employer" },
+  { compare: "", family: "", source: "" },
 ];
 
 function snapshot(doc, win) {
@@ -31,6 +35,9 @@ function snapshot(doc, win) {
     period: doc.getElementById("period").value,
     family: doc.getElementById("family").value,
     source: doc.getElementById("source").value,
+    compare: doc.getElementById("compare").value,
+    compareName: doc.querySelector(".compare-name").textContent,
+    hubs: [...doc.getElementById("compare").options].map((option) => option.value),
     search: win.location.search,
   };
 }
