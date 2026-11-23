@@ -96,6 +96,16 @@ tables are in [`reports/summary.md`](reports/summary.md).
    years, to $93,600 for 3 to 5 years and $109,200 for 5 years or more.
 
    ![Salary by experience asked for in Toronto Region tech postings](reports/figures/salary_by_experience.png)
+8. **Toronto has four times the tech postings of any other region, but not the
+   highest direct pay.** Vancouver (1,250 postings) and Montréal (892) follow
+   Toronto's 5,074. Across all postings Toronto's median is the highest
+   ($99,600), but in direct employer postings Ottawa is above it ($84,200 from
+   78 salaries vs. $80,000), and Vancouver, Kitchener–Waterloo, Calgary,
+   Montréal and Edmonton are within $3,300 to $7,000. Halifax shows how much
+   external boards can move a median: $94,300 across all postings, $65,800 in
+   its 34 direct ones. Salaries are not adjusted for the cost of living.
+
+   ![Median salaries in the eight largest tech regions, all postings vs. direct employer postings](reports/figures/tech_hubs.png)
 
 These figures describe Job Bank, not the whole market (see
 [Limitations](#limitations)). Salary ranges for some occupations are narrow,
@@ -220,6 +230,7 @@ Real government data is messy. The pipeline deals with:
 - [x] Check for repeated template salary ranges; salaries by experience and for direct postings
 - [x] Notebook with written findings for a non-technical reader
 - [x] Interactive dashboard on GitHub Pages, fed by a documented CSV extract
+- [x] Comparison with Canada's other tech hubs
 
 ## Development
 
