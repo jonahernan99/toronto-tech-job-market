@@ -41,7 +41,7 @@ def test_report_command_writes_markdown(month_files, tmp_path, capsys):
     assert main(["build", "--raw", str(month_files[0].parent), "--db", str(db)]) == EXIT_OK
     out = tmp_path / "reports" / "summary.md"
     assert main(["report", "--db", str(db), "--out", str(out)]) == EXIT_OK
-    assert "Wrote 11 tables" in capsys.readouterr().out
+    assert "Wrote 12 tables" in capsys.readouterr().out
     assert "## Overview" in out.read_text(encoding="utf-8")
 
 

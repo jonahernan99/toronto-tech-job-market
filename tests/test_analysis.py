@@ -32,7 +32,7 @@ def as_dicts(table):
 
 def test_every_query_has_a_title_and_notes():
     queries = load_queries()
-    assert [q.name[:2] for q in queries] == [f"{i:02d}" for i in range(1, 12)]
+    assert [q.name[:2] for q in queries] == [f"{i:02d}" for i in range(1, 13)]
     for query in queries:
         assert query.title and query.title != query.name
         assert query.notes
@@ -83,7 +83,7 @@ def test_salary_quality_counts_implausible_rows(con):
 
 def test_all_queries_run_on_the_fixture(month_files):
     tables = run_analysis(build_database(month_files))
-    assert len(tables) == 11
+    assert len(tables) == 12
     assert all(table.columns for table in tables)
 
 
@@ -175,3 +175,32 @@ def test_direct_salary_by_family_leaves_out_external_postings(tmp_path):
         "rest_postings": 1,
         "rest_of_canada_median": 78000,
     }
+
+
+def test_tech_hubs_ranks_regions_and_splits_direct_salaries(tmp_path):
+    rows = [
+        # Toronto: the same ad in two cities counts once, plus an external posting.
+        row("1", city="Toronto"),  # direct, 58,500
+        row("2", city="Mississauga"),
+        row("3", external="1", per="Year", low="150000", high="150000", title="lead"),
+        # The same ad also listed in Ottawa counts once there too.
+        row("4", region="Ottawa Region", city="Ottawa"),
+        row("5", region="Ottawa Region", city="Ottawa", per="Year", low="25", high="25", title="x"),
+    ]
+    # Seven more regions with one posting each; the last one alphabetically drops out.
+    for i, name in enumerate("ABCDEFG"):
+        rows.append(row(f"r{i}", region=f"Region {name}", city=name, title=f"dev {name}"))
+    tables = by_name(run_analysis(build_database([write_month(tmp_path / "2026-10.csv", rows)])))
+    hubs = as_dicts(tables["12_tech_hubs"])
+
+    assert len(hubs) == 8
+    assert [hub["region"] for hub in hubs[:3]] == ["Ottawa Region", "Toronto Region", "Region A"]
+    assert "Region G" not in {hub["region"] for hub in hubs}
+    toronto = hubs[1]
+    assert toronto["postings"] == 2
+    assert toronto["direct_pct"] == 50.0
+    assert toronto["median_all"] == 104300  # midpoint of 58,500 and 150,000, rounded to $100
+    assert (toronto["direct_salaries"], toronto["median_direct"]) == (1, 58500)
+    ottawa = hubs[0]
+    # The $25 "yearly" salary is implausible and left out of both medians.
+    assert (ottawa["postings"], ottawa["direct_salaries"], ottawa["median_direct"]) == (2, 1, 58500)
