@@ -1,6 +1,6 @@
 # Toronto Tech Job Market: SQL Analysis Report
 
-Generated on 2026-11-23 by `jobmarket report` from the queries in [`src/jobmarket/sql/analysis`](../src/jobmarket/sql/analysis). Salaries are in CAD.
+Generated on 2026-11-25 by `jobmarket report` from the queries in [`src/jobmarket/sql/analysis`](../src/jobmarket/sql/analysis). Salaries are in CAD.
 
 ## Overview
 
@@ -177,6 +177,40 @@ _The eight economic regions with the most distinct tech postings, chosen by that
 | Kitchener–Waterloo–Barrie Region | Ontario | 274 | 25.2% | 80,000 | 69 | 76,700 |
 | Halifax Region | Nova Scotia | 273 | 12.5% | 94,300 | 34 | 65,800 |
 | Edmonton Region | Alberta | 265 | 44.2% | 74,900 | 117 | 73,000 |
+
+## Industries of direct employer tech postings (CAD)
+
+_Only employers posting on Job Bank themselves state their industry (NAICS sector), so this table covers direct postings alone. Shares are of direct tech postings with an industry in each region; the ten largest Toronto industries are shown. Salaries are medians of plausible salaries, rounded to $100. Large employers that recruit on their own sites, such as banks, are largely absent from Job Bank, which this table makes visible._
+
+![Industries of direct employer tech postings (CAD)](figures/direct_industries.png)
+
+| Industry | Toronto postings | Toronto % | Toronto median | Rest postings | Rest % |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Professional, scientific and technical services | 392 | 46.7% | 87,500 | 884 | 46.5% |
+| Information and cultural industries | 95 | 11.3% | 85,700 | 126 | 6.6% |
+| Wholesale trade | 46 | 5.5% | 67,800 | 70 | 3.7% |
+| Manufacturing | 44 | 5.2% | 77,000 | 100 | 5.3% |
+| Transportation and warehousing | 44 | 5.2% | 66,400 | 52 | 2.7% |
+| Educational services | 40 | 4.8% | 65,500 | 68 | 3.6% |
+| Finance and insurance | 39 | 4.6% | 84,600 | 17 | 0.9% |
+| Employment services | 27 | 3.2% | 99,500 | 34 | 1.8% |
+| Retail trade | 24 | 2.9% | 74,600 | 121 | 6.4% |
+| Administrative and support services | 17 | 2.0% | 72,800 | 80 | 4.2% |
+
+## Schedule and permanence of tech postings
+
+_Schedule (full or part time) is reported by both sources and covers all postings; permanence (permanent, term or contract, ...) is reported only by direct employer postings. Shares are within each region and measure. Most part-time postings come from external job boards and give no weekly hours, so their pay is annualized at 40 hours, a full-time equivalent._
+
+| Measure | Value | Toronto postings | Toronto % | Rest postings | Rest % |
+| --- | --- | ---: | ---: | ---: | ---: |
+| Schedule | Full time | 4,523 | 89.1% | 5,862 | 93.9% |
+| Schedule | Part time | 475 | 9.4% | 206 | 3.3% |
+| Schedule | Not stated | 69 | 1.4% | 151 | 2.4% |
+| Schedule | Part time leading to full time | 7 | 0.1% | 24 | 0.4% |
+| Permanence (direct postings) | Permanent employment | 787 | 93.9% | 1,668 | 87.8% |
+| Permanence (direct postings) | Term or contract | 45 | 5.4% | 221 | 11.6% |
+| Permanence (direct postings) | Seasonal employment | 4 | 0.5% | 3 | 0.2% |
+| Permanence (direct postings) | Casual employment | 2 | 0.2% | 7 | 0.4% |
 
 ---
 
