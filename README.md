@@ -111,6 +111,22 @@ tables are in [`reports/summary.md`](reports/summary.md).
    its 34 direct ones. Salaries are not adjusted for the cost of living.
 
    ![Median salaries in the eight largest tech regions, all postings vs. direct employer postings](reports/figures/tech_hubs.png)
+9. **Direct postings come mostly from professional services, not finance.**
+   Only employers posting on Job Bank themselves state an industry. In
+   Toronto, 47% of those tech postings come from professional, scientific and
+   technical services, the sector that includes IT consulting and computer
+   systems design, and 11% from information and cultural industries. Finance
+   and insurance, a major tech employer in Toronto, accounts for 5%: 39
+   postings in a year. Employers that recruit through their own career sites
+   are largely missing, one more reason to read these figures as a sample.
+
+   ![Industries of direct employer tech postings, Toronto Region vs. rest of Canada](reports/figures/direct_industries.png)
+10. **Most tech postings are full time and permanent, but Toronto has more
+    part-time ads.** 89% of Toronto postings are full time, against 94%
+    elsewhere. Of the 475 part-time Toronto postings, 465 come from external
+    job boards and 357 are for information systems specialists. Among direct
+    postings, 94% of Toronto roles are permanent; elsewhere term or contract
+    roles are twice as common (11.6% vs. 5.4%).
 
 These figures describe Job Bank, not the whole market (see
 [Limitations](#limitations)). Salary ranges for some occupations are narrow,
@@ -128,6 +144,9 @@ applying to hire through federal programs.
   to $250 are excluded from salary statistics (0.4% of hourly and 1.3% of
   yearly salaries).
 - **Medians, not averages,** with each posting counted once per region.
+- **Part-time postings.** Most give an hourly rate without weekly hours, so
+  their pay is annualized at 40 hours, a full-time equivalent. Leaving every
+  part-time posting out changes no family median by more than $1,300.
 - **Direct vs. external postings.** 83% of Toronto tech postings come from
   external job boards, which do not report education or experience and often
   reuse occupation-wide salary ranges. Salaries are shown for all postings and
@@ -236,6 +255,7 @@ Real government data is messy. The pipeline deals with:
 - [x] Notebook with written findings for a non-technical reader
 - [x] Interactive dashboard on GitHub Pages, fed by a documented CSV extract
 - [x] Comparison with Canada's other tech hubs
+- [x] Industries of direct postings, schedule and permanence
 
 ## Development
 
