@@ -42,6 +42,8 @@ postings give $95,000 in Toronto and $90,000 elsewhere in both.
   [Vancouver, direct postings only](https://jonahernan99.github.io/toronto-tech-job-market/?source=Direct+employer&compare=Lower+Mainland%E2%80%93Southwest+Region).
   For the rest of Canada, an ad listed in several regions counts once.
 - Choosing a family breaks salaries down by occupation.
+- Salaries by experience and the education asked for come from direct employer
+  postings, the only ones that report requirements.
 - Every chart has hover and keyboard tooltips and a table view, and the page
   follows the system's light or dark mode.
 - The extract is [documented](dashboard/data/README.md) and can be downloaded
