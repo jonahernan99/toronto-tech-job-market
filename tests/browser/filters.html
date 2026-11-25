@@ -39,6 +39,11 @@ function snapshot(doc, win) {
     compareName: doc.querySelector(".compare-name").textContent,
     hubs: [...doc.getElementById("compare").options].map((option) => option.value),
     search: win.location.search,
+    educationText: doc.getElementById("education").textContent,
+    education: [...doc.querySelectorAll("#education-table tbody tr")].map((tr) => [
+      tr.cells[0].textContent,
+      tr.cells[1].textContent,
+    ]),
   };
 }
 

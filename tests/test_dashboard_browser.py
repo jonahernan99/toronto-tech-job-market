@@ -141,3 +141,28 @@ def test_the_url_follows_the_filters(results):
     assert last["search"] == ""
     combined = next(r for r in results if r["step"].get("family") == "IT & systems")
     assert combined["search"] == "?period=6&family=IT+%26+systems&source=Direct+employer"
+
+
+def test_education_card_follows_the_source_filter(results, rows):
+    for result in results:
+        wanted_source = result["source"]
+        if wanted_source == "External job board":
+            assert "do not report education" in result["educationText"]
+            assert result["education"] == []
+            continue
+        shares = [float(share.rstrip("%")) for _, share in result["education"] if share != "–"]
+        if shares:
+            assert sum(shares) == pytest.approx(100, abs=0.5), result["step"]
+
+    # With every filter reset, the bachelor's share matches a count made here.
+    last = results[-1]
+    direct = [
+        row
+        for row in rows
+        if row["region"] == "Toronto Region"
+        and row["source"] == "Direct employer"
+        and row["education"]
+    ]
+    bachelor = sum(row["education"] == "Bachelor's degree" for row in direct) / len(direct)
+    shown = dict(last["education"])["Bachelor's degree"]
+    assert shown == f"{100 * bachelor:.1f}%"

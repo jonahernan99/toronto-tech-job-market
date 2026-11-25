@@ -88,6 +88,8 @@ function toRows(records) {
       source: values[at.source],
       experience: values[at.experience],
       experienceRank: values[at.experience_rank] === "" ? null : Number(values[at.experience_rank]),
+      education: values[at.education],
+      educationRank: values[at.education_rank] === "" ? null : Number(values[at.education_rank]),
       salary: values[at.annual_salary] === "" ? null : Number(values[at.annual_salary]),
     }));
 }
@@ -374,9 +376,27 @@ function renderTrend(rows, months) {
   container.replaceChildren(svg);
 }
 
+// How paired bars show a value: salaries (medians) or shares of postings.
+const SALARY_FORMAT = {
+  value: (stats) => stats.median,
+  tick: compactMoney,
+  text: money,
+  missing: `fewer than ${MIN_SALARIES} salaries`,
+  detail: (stats) =>
+    `${integer.format(stats.n)} salaries, middle half ${compactMoney(stats.p25)}–${compactMoney(stats.p75)}`,
+};
+
+const SHARE_FORMAT = {
+  value: (stats) => stats.pct,
+  tick: (value) => `${integer.format(value)}%`,
+  text: (value) => (value === null ? "–" : `${value.toFixed(1)}%`),
+  missing: `fewer than ${MIN_SALARIES} postings`,
+  detail: (stats) => `${integer.format(stats.count)} of ${integer.format(stats.total)} postings`,
+};
+
 // Horizontal bars, one pair (Toronto Region and the comparison) per group.
 // groups: [{ label, stats: [stats per region] }]
-function renderPairedBars(container, groups, unit) {
+function renderPairedBars(container, groups, format = SALARY_FORMAT) {
   if (!groups.length) return emptyMessage(container, "No postings match these filters.");
   const width = container.clientWidth;
   const margin = { top: 4, right: 76, bottom: 24, left: 4 };
@@ -387,8 +407,8 @@ function renderPairedBars(container, groups, unit) {
   const groupHeight = labelHeight + 2 * bar + gap + after;
   const height = margin.top + groups.length * groupHeight + margin.bottom;
   const innerWidth = width - margin.left - margin.right;
-  const medians = groups.flatMap((group) => group.stats.map((stats) => stats.median ?? 0));
-  const ticks = niceTicks(Math.max(...medians, 1), innerWidth < 360 ? 3 : 5);
+  const values = groups.flatMap((group) => group.stats.map((stats) => format.value(stats) ?? 0));
+  const ticks = niceTicks(Math.max(...values, 1), innerWidth < 360 ? 3 : 5);
   const top = ticks[ticks.length - 1];
   const x = (value) => margin.left + (innerWidth * value) / top;
   const plotBottom = height - margin.bottom;
@@ -396,7 +416,7 @@ function renderPairedBars(container, groups, unit) {
   const svg = svgElement("svg", { width, height, viewBox: `0 0 ${width} ${height}`, role: "group" });
   for (const value of ticks) {
     svgElement("line", { class: value === 0 ? "axis" : "grid", x1: x(value), x2: x(value), y1: margin.top, y2: plotBottom }, svg);
-    svgText(svg, x(value), height - 6, compactMoney(value), { class: "tick", "text-anchor": "middle" });
+    svgText(svg, x(value), height - 6, format.tick(value), { class: "tick", "text-anchor": "middle" });
   }
 
   groups.forEach((group, g) => {
@@ -406,22 +426,23 @@ function renderPairedBars(container, groups, unit) {
     svgText(row, margin.left, top + 14, group.label, { class: "label" });
     group.stats.forEach((stats, s) => {
       const y = top + labelHeight + s * (bar + gap);
-      if (stats.median === null) {
-        svgText(row, x(0) + 6, y + bar - 2, `fewer than ${MIN_SALARIES} salaries`, { class: "note" });
+      const value = format.value(stats);
+      if (value === null) {
+        svgText(row, x(0) + 6, y + bar - 2, format.missing, { class: "note" });
         return;
       }
-      const w = Math.max(1, x(stats.median) - x(0));
+      const w = Math.max(1, x(value) - x(0));
       const r = Math.min(4, w, bar / 2);
       const x0 = x(0);
       const d = `M${x0},${y}H${x0 + w - r}A${r},${r} 0 0 1 ${x0 + w},${y + r}V${y + bar - r}A${r},${r} 0 0 1 ${x0 + w - r},${y + bar}H${x0}Z`;
       svgElement("path", { class: `fill-${s + 1}`, d }, row);
-      svgText(row, x0 + w + 6, y + bar - 2, money(stats.median), { class: "value" });
+      svgText(row, x0 + w + 6, y + bar - 2, format.text(value), { class: "value" });
     });
 
     const describe = (stats) =>
-      stats.median === null
-        ? `fewer than ${MIN_SALARIES} salaries`
-        : `${money(stats.median)} from ${integer.format(stats.n)} ${unit}`;
+      format.value(stats) === null
+        ? format.missing
+        : `${format.text(format.value(stats))}, ${format.detail(stats)}`;
     const hit = svgElement("rect", {
       class: "hit",
       x: 0,
@@ -434,11 +455,11 @@ function renderPairedBars(container, groups, unit) {
     }, row);
     const lines = () =>
       group.stats.map((stats, s) => ({
-        value: money(stats.median),
+        value: format.text(format.value(stats)),
         label:
-          stats.median === null
-            ? `${names()[s]}, fewer than ${MIN_SALARIES} salaries`
-            : `${names()[s]}, ${integer.format(stats.n)} ${unit}, middle half ${compactMoney(stats.p25)}–${compactMoney(stats.p75)}`,
+          format.value(stats) === null
+            ? `${names()[s]}, ${format.missing}`
+            : `${names()[s]}, ${format.detail(stats)}`,
         key: `s${s + 1}`,
       }));
     const activate = (clientX, clientY) => {
@@ -484,7 +505,7 @@ function renderSalary(rows) {
   document.getElementById("salary-title").textContent = state.family
     ? `Median annual salary by occupation: ${state.family}`
     : "Median annual salary by family";
-  renderPairedBars(document.getElementById("salary"), groups, "salaries");
+  renderPairedBars(document.getElementById("salary"), groups);
   pairedTable(document.getElementById("salary-table"), state.family ? "Occupation" : "Family", groups);
 }
 
@@ -504,8 +525,45 @@ function renderExperience(rows) {
       stats: byRegion(members).map(salaryStats),
     }))
     .sort((a, b) => a.rank - b.rank);
-  renderPairedBars(container, groups, "salaries");
+  renderPairedBars(container, groups);
   pairedTable(table, "Experience", groups);
+}
+
+function renderEducation(rows) {
+  const container = document.getElementById("education");
+  const table = document.getElementById("education-table");
+  if (state.source === "External job board") {
+    emptyMessage(container, "External job boards do not report education. Choose all sources or direct employer postings.");
+    table.replaceChildren();
+    return;
+  }
+  const stated = rows.filter((row) => row.source === "Direct employer" && row.educationRank !== null);
+  const totals = byRegion(stated).map((members) => members.length);
+  const groups = [...groupBy(stated, (row) => row.education)]
+    .map(([label, members]) => ({
+      label,
+      rank: members[0].educationRank,
+      stats: byRegion(members).map((part, s) => ({
+        count: part.length,
+        total: totals[s],
+        pct: totals[s] >= MIN_SALARIES ? (100 * part.length) / totals[s] : null,
+      })),
+    }))
+    .sort((a, b) => a.rank - b.rank);
+  renderPairedBars(container, groups, SHARE_FORMAT);
+  const [, other] = names();
+  htmlTable(
+    table,
+    ["Education", "Toronto share", "Toronto postings", `${other} share`, `${other} postings`],
+    groups.map((group) => [
+      group.label,
+      SHARE_FORMAT.text(group.stats[0].pct),
+      integer.format(group.stats[0].count),
+      SHARE_FORMAT.text(group.stats[1].pct),
+      integer.format(group.stats[1].count),
+    ]),
+    [false, true, true, true, true],
+  );
 }
 
 function renderOccupations(rows) {
@@ -585,6 +643,7 @@ function render() {
   renderTrend(rows, months);
   renderSalary(rows);
   renderExperience(rows);
+  renderEducation(rows);
   renderOccupations(rows);
 }
 
