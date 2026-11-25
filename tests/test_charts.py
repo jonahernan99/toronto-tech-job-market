@@ -70,6 +70,23 @@ TABLES = [
             ("Halifax Region", "Nova Scotia", 273, 12.5, 94300.0, 0, None),
         ],
     ),
+    Table(
+        "13_direct_industries",
+        "Industries",
+        "",
+        (
+            "industry",
+            "toronto_postings",
+            "toronto_pct",
+            "toronto_median",
+            "rest_postings",
+            "rest_pct",
+        ),
+        [
+            ("Professional, scientific and technical services", 392, 46.7, 87500.0, 884, 46.5),
+            ("Finance and insurance", 39, 4.6, 84600.0, 17, 0.9),
+        ],
+    ),
     Table("01_overview", "Overview", "", ("rows",), [(1,)]),  # no chart for this table
 ]
 

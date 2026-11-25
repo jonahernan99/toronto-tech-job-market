@@ -249,6 +249,47 @@ def tech_hubs(table: Table, path: Path) -> Path:
     )
 
 
+def direct_industries(table: Table, path: Path) -> Path:
+    import matplotlib.pyplot as plt
+
+    rows = list(reversed(_rows(table)))  # largest Toronto industry ends up on top
+    positions = range(len(rows))
+    height = 0.36
+    fig, ax = plt.subplots(figsize=(9, 0.48 * len(rows) + 1.8), facecolor=SURFACE)
+    _style(ax, value_axis="x")
+    for offset, column, color, label in (
+        (height / 2 + 0.02, "toronto_pct", TORONTO, "Toronto Region"),
+        (-height / 2 - 0.02, "rest_pct", COMPARISON, "Rest of Canada"),
+    ):
+        bars = ax.barh(
+            [p + offset for p in positions],
+            [r[column] or 0 for r in rows],
+            height,
+            color=color,
+            label=label,
+        )
+        ax.bar_label(
+            bars,
+            labels=[f"{b.get_width():.0f}%" for b in bars],
+            padding=4,
+            color=INK_SECONDARY,
+            fontsize=8,
+        )
+    ax.set_yticks(list(positions), [r["industry"] for r in rows], color=INK, fontsize=8)
+    ax.set_xlabel(
+        "Share of direct employer tech postings with an industry (%)", color=MUTED, fontsize=9
+    )
+    ax.set_xlim(0, max(max(r["toronto_pct"] or 0, r["rest_pct"] or 0) for r in rows) * 1.15)
+    ax.legend(loc="lower right", frameon=False, fontsize=9, labelcolor=INK_SECONDARY)
+    return _finish(
+        fig,
+        ax,
+        "Who posts tech jobs on Job Bank directly",
+        "Industry (NAICS sector) of direct employer postings; ten largest in Toronto",
+        path,
+    )
+
+
 #: Analysis table name -> (chart function, file name)
 CHARTS = {
     "03_salary_by_family": (salary_by_family, "salary_by_family.png"),
@@ -256,6 +297,7 @@ CHARTS = {
     "06_toronto_education": (education, "education.png"),
     "09_toronto_salary_by_experience": (salary_by_experience, "salary_by_experience.png"),
     "12_tech_hubs": (tech_hubs, "tech_hubs.png"),
+    "13_direct_industries": (direct_industries, "direct_industries.png"),
 }
 
 
