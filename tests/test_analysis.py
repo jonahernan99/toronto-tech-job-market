@@ -32,7 +32,7 @@ def as_dicts(table):
 
 def test_every_query_has_a_title_and_notes():
     queries = load_queries()
-    assert [q.name[:2] for q in queries] == [f"{i:02d}" for i in range(1, 13)]
+    assert [q.name[:2] for q in queries] == [f"{i:02d}" for i in range(1, 15)]
     for query in queries:
         assert query.title and query.title != query.name
         assert query.notes
@@ -83,7 +83,7 @@ def test_salary_quality_counts_implausible_rows(con):
 
 def test_all_queries_run_on_the_fixture(month_files):
     tables = run_analysis(build_database(month_files))
-    assert len(tables) == 12
+    assert len(tables) == 14
     assert all(table.columns for table in tables)
 
 
@@ -204,3 +204,49 @@ def test_tech_hubs_ranks_regions_and_splits_direct_salaries(tmp_path):
     ottawa = hubs[0]
     # The $25 "yearly" salary is implausible and left out of both medians.
     assert (ottawa["postings"], ottawa["direct_salaries"], ottawa["median_direct"]) == (2, 1, 58500)
+
+
+def test_direct_industries_cover_direct_postings_with_an_industry(tmp_path):
+    services = "Professional, scientific and technical services"
+    rows = [
+        row("1", industry=services),  # 58,500
+        row("2", industry=services, per="Year", low="90000", high="90000", title="senior"),
+        row("3", industry="Finance and insurance", title="bank developer"),
+        row("4", industry="NA", title="no industry"),
+        row("5", external="1", industry=services, title="board ad"),  # external: left out
+        row("6", region="Ottawa Region", city="Ottawa", industry="Retail trade", title="retail"),
+    ]
+    tables = by_name(run_analysis(build_database([write_month(tmp_path / "2026-10.csv", rows)])))
+    industries = as_dicts(tables["13_direct_industries"])
+
+    assert [i["industry"] for i in industries] == [
+        services,
+        "Finance and insurance",
+        "Retail trade",
+    ]
+    first = industries[0]
+    assert (first["toronto_postings"], first["toronto_pct"]) == (2, round(200 / 3, 1))
+    assert first["toronto_median"] == 74300  # median of 58,500 and 90,000, rounded to $100
+    assert (industries[2]["rest_postings"], industries[2]["rest_pct"]) == (1, 100.0)
+
+
+def test_employment_terms_split_schedule_and_permanence(tmp_path):
+    rows = [
+        row("1"),
+        row("2", employment_type="Part time", external="1", title="part time"),
+        row("3", employment_term="Term or contract", title="contract"),
+        row("4", employment_type="NA", employment_term="NA", external="1", title="unstated"),
+        row("5", region="Ottawa Region", city="Ottawa", title="ottawa"),
+    ]
+    tables = by_name(run_analysis(build_database([write_month(tmp_path / "2026-10.csv", rows)])))
+    terms = {(t["measure"], t["value"]): t for t in as_dicts(tables["14_employment_terms"])}
+
+    schedule = terms[("Schedule", "Full time")]
+    assert (schedule["toronto_postings"], schedule["toronto_pct"]) == (2, 50.0)
+    assert terms[("Schedule", "Part time")]["toronto_postings"] == 1
+    assert terms[("Schedule", "Not stated")]["toronto_postings"] == 1
+    # Permanence counts direct postings only: rows 1 and 3 in Toronto.
+    permanent = terms[("Permanence (direct postings)", "Permanent employment")]
+    assert (permanent["toronto_postings"], permanent["toronto_pct"]) == (1, 50.0)
+    assert (permanent["rest_postings"], permanent["rest_pct"]) == (1, 100.0)
+    assert ("Permanence (direct postings)", "Not stated") not in terms
